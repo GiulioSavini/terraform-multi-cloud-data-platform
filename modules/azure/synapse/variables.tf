@@ -23,18 +23,8 @@ variable "storage_account_id" {
   type        = string
 }
 
-variable "storage_account_url" {
-  description = "ADLS Gen2 primary DFS endpoint URL"
-  type        = string
-}
-
 variable "filesystem_id" {
   description = "ADLS Gen2 filesystem ID for the workspace"
-  type        = string
-}
-
-variable "subnet_id" {
-  description = "Subnet ID for managed private endpoint"
   type        = string
 }
 

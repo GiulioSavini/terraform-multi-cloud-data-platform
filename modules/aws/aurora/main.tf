@@ -151,8 +151,9 @@ resource "aws_rds_cluster" "main" {
   vpc_security_group_ids          = var.security_group_ids
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.aurora.name
 
-  storage_encrypted = true
-  kms_key_id        = aws_kms_key.aurora.arn
+  storage_encrypted                   = true
+  kms_key_id                          = aws_kms_key.aurora.arn
+  iam_database_authentication_enabled = true
 
   backup_retention_period      = var.backup_retention_period
   preferred_backup_window      = var.preferred_backup_window

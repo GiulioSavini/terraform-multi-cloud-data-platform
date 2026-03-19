@@ -45,9 +45,7 @@ module "azure_synapse" {
   location            = var.azure_region
   resource_group_name = module.azure_networking.resource_group_name
   storage_account_id  = module.azure_data_lake.storage_account_id
-  storage_account_url = module.azure_data_lake.primary_dfs_endpoint
   filesystem_id       = module.azure_data_lake.raw_container_id
-  subnet_id           = module.azure_networking.synapse_subnet_id
   sql_pool_sku        = var.synapse_sql_pool_sku
   spark_node_count    = var.synapse_spark_node_count
   tags                = local.common_tags
