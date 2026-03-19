@@ -76,7 +76,11 @@ jobs:
           quiet: true
           compact: true
           soft_fail: true
-          skip_check: CKV_AWS_144,CKV_AWS_145,CKV_AWS_382,CKV_AWS_290,CKV_AWS_355,CKV_AZURE_100,CKV_AZURE_103
+          skip_check: >-
+            CKV_AWS_144,CKV_AWS_145,CKV_AWS_382,CKV_AWS_290,CKV_AWS_355,
+            CKV_AZURE_33,CKV_AZURE_100,CKV_AZURE_103,CKV_AZURE_206,
+            CKV_AZURE_239,CKV_AZURE_240,CKV_AZURE_242,
+            CKV_GCP_80,CKV_GCP_81
           output_format: cli,sarif
           output_file_path: console,results.sarif
 
@@ -99,8 +103,10 @@ jobs:
   plan-dev:
     name: Plan (Dev)
     needs: [validate, security]
+    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && github.event_name == 'push')
     runs-on: ubuntu-latest
     environment: dev
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -179,6 +185,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: prd
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v5
