@@ -76,11 +76,7 @@ jobs:
           quiet: true
           compact: true
           soft_fail: true
-          skip_check: >-
-            CKV_AWS_144,CKV_AWS_145,CKV_AWS_382,CKV_AWS_290,CKV_AWS_355,
-            CKV_AZURE_33,CKV_AZURE_100,CKV_AZURE_103,CKV_AZURE_206,
-            CKV_AZURE_239,CKV_AZURE_240,CKV_AZURE_242,
-            CKV_GCP_80,CKV_GCP_81
+          skip_check: CKV_AWS_144,CKV_AWS_145,CKV_AWS_382,CKV_AWS_290,CKV_AWS_355,CKV_AZURE_33,CKV_AZURE_100,CKV_AZURE_103,CKV_AZURE_206,CKV_AZURE_239,CKV_AZURE_240,CKV_AZURE_242,CKV_GCP_80,CKV_GCP_81
           output_format: cli,sarif
           output_file_path: console,results.sarif
 
