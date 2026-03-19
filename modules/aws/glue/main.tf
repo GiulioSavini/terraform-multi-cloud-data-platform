@@ -58,11 +58,11 @@ resource "aws_iam_role_policy" "glue_s3" {
           "s3:GetBucketLocation"
         ]
         Resource = [
-          "${replace(var.s3_raw_path, "s3://", "arn:aws:s3:::")}",
+          replace(var.s3_raw_path, "s3://", "arn:aws:s3:::"),
           "${replace(var.s3_raw_path, "s3://", "arn:aws:s3:::")}/*",
-          "${replace(var.s3_curated_path, "s3://", "arn:aws:s3:::")}",
+          replace(var.s3_curated_path, "s3://", "arn:aws:s3:::"),
           "${replace(var.s3_curated_path, "s3://", "arn:aws:s3:::")}/*",
-          "${replace(var.s3_analytics_path, "s3://", "arn:aws:s3:::")}",
+          replace(var.s3_analytics_path, "s3://", "arn:aws:s3:::"),
           "${replace(var.s3_analytics_path, "s3://", "arn:aws:s3:::")}/*"
         ]
       },
@@ -134,10 +134,11 @@ data "aws_subnet" "glue" {
 resource "aws_glue_crawler" "zones" {
   for_each = local.zones
 
-  name          = "${local.name_prefix}-crawler-${each.key}"
-  database_name = aws_glue_catalog_database.main.name
-  role          = aws_iam_role.glue.arn
-  description   = "Crawler for ${each.key} data zone"
+  name                   = "${local.name_prefix}-crawler-${each.key}"
+  database_name          = aws_glue_catalog_database.main.name
+  role                   = aws_iam_role.glue.arn
+  description            = "Crawler for ${each.key} data zone"
+  security_configuration = aws_glue_security_configuration.main.name
 
   s3_target {
     path = each.value
@@ -272,11 +273,12 @@ resource "aws_glue_security_configuration" "main" {
 # -----------------------------------------------------------------------------
 
 resource "aws_glue_job" "raw_to_curated" {
-  name         = "${local.name_prefix}-raw-to-curated"
-  role_arn     = aws_iam_role.glue.arn
-  glue_version = var.glue_version
-  max_capacity = var.max_capacity
-  description  = "ETL job to transform raw data to curated zone"
+  name                   = "${local.name_prefix}-raw-to-curated"
+  role_arn               = aws_iam_role.glue.arn
+  glue_version           = var.glue_version
+  max_capacity           = var.max_capacity
+  description            = "ETL job to transform raw data to curated zone"
+  security_configuration = aws_glue_security_configuration.main.name
 
   command {
     script_location = "s3://${aws_s3_bucket.glue_scripts.id}/${aws_s3_object.etl_script.key}"

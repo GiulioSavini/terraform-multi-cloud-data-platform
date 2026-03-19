@@ -234,6 +234,15 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
       days = 90
     }
   }
+
+  rule {
+    id     = "abort-incomplete-multipart"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
 }
 
 # -----------------------------------------------------------------------------

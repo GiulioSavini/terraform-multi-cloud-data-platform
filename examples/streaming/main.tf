@@ -57,7 +57,6 @@ module "msk" {
   source               = "../../modules/aws/msk"
   project              = local.project
   environment          = local.environment
-  vpc_id               = module.aws_networking.vpc_id
   subnet_ids           = module.aws_networking.private_subnet_ids
   broker_instance_type = "kafka.t3.small"
   number_of_brokers    = 2
