@@ -8,11 +8,6 @@ variable "environment" {
   type        = string
 }
 
-variable "vpc_id" {
-  description = "VPC ID where Redshift will be deployed"
-  type        = string
-}
-
 variable "subnet_ids" {
   description = "List of subnet IDs for the Redshift subnet group"
   type        = list(string)

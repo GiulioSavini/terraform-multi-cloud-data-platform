@@ -5,7 +5,7 @@
 
 locals {
   name_prefix = replace("${var.project_name}_${var.environment}", "-", "_")
-  location    = "EU"
+  location    = var.region
 }
 
 # -----------------------------------------------------------------------------

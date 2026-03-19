@@ -28,11 +28,6 @@ variable "data_lake_kms_key_arn" {
   type        = string
 }
 
-variable "vpc_id" {
-  description = "VPC ID for Glue connection"
-  type        = string
-}
-
 variable "subnet_id" {
   description = "Subnet ID for Glue connection"
   type        = string
