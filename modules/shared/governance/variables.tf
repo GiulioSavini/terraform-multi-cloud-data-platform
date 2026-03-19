@@ -1,6 +1,40 @@
-variable "project" { type = string }
-variable "environment" { type = string }
-variable "gcp_project_id" { type = string }
-variable "azure_resource_group_name" { type = string }
-variable "azure_location" { type = string }
-variable "tags" { type = map(string); default = {} }
+variable "project_name" {
+  description = "Project name used as resource prefix"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (dev, stg, prd)"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+}
+
+variable "azure_region" {
+  description = "Azure region"
+  type        = string
+}
+
+variable "azure_resource_group_name" {
+  description = "Azure resource group name"
+  type        = string
+}
+
+variable "gcp_region" {
+  description = "GCP region"
+  type        = string
+}
+
+variable "gcp_project_id" {
+  description = "GCP project ID"
+  type        = string
+}
+
+variable "tags" {
+  description = "Common tags for all resources"
+  type        = map(string)
+  default     = {}
+}
