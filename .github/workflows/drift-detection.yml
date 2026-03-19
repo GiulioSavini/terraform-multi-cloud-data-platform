@@ -1,0 +1,215 @@
+name: Drift Detection
+
+on:
+  schedule:
+    - cron: '0 6 * * 1-5'  # Weekdays at 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to check'
+        required: true
+        default: 'prd'
+        type: choice
+        options:
+          - dev
+          - stg
+          - prd
+
+env:
+  TF_VERSION: "1.9.0"
+  AWS_REGION: "eu-west-1"
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+jobs:
+  drift-check:
+    name: Drift Check (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          - stg
+          - prd
+    steps:
+      - name: Filter Environment
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ matrix.environment }}" != "${{ github.event.inputs.environment }}" ]; then
+              echo "skip=true" >> $GITHUB_OUTPUT
+            else
+              echo "skip=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout
+        if: steps.filter.outputs.skip != 'true'
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        if: steps.filter.outputs.skip != 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets[format('AWS_ROLE_ARN_{0}', matrix.environment)] }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Azure Login
+        if: steps.filter.outputs.skip != 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets[format('AZURE_CLIENT_ID_{0}', matrix.environment)] }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets[format('AZURE_SUBSCRIPTION_ID_{0}', matrix.environment)] }}
+
+      - name: GCP Auth
+        if: steps.filter.outputs.skip != 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets[format('GCP_WIF_PROVIDER_{0}', matrix.environment)] }}
+          service_account: ${{ secrets[format('GCP_SA_EMAIL_{0}', matrix.environment)] }}
+
+      - name: Setup Terraform
+        if: steps.filter.outputs.skip != 'true'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        if: steps.filter.outputs.skip != 'true'
+        working-directory: environments/${{ matrix.environment }}
+        run: terraform init -input=false
+
+      - name: Terraform Plan (Drift Detection)
+        if: steps.filter.outputs.skip != 'true'
+        id: plan
+        working-directory: environments/${{ matrix.environment }}
+        run: |
+          set +e
+          terraform plan -input=false -detailed-exitcode -var-file=terraform.tfvars \
+            -out=tfplan 2>&1 | tee plan_output.txt
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "drift=false" >> $GITHUB_OUTPUT
+            echo "status=No drift detected" >> $GITHUB_OUTPUT
+          elif [ $EXIT_CODE -eq 2 ]; then
+            echo "drift=true" >> $GITHUB_OUTPUT
+            echo "status=DRIFT DETECTED" >> $GITHUB_OUTPUT
+          else
+            echo "drift=error" >> $GITHUB_OUTPUT
+            echo "status=Error running plan" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Show Drift Details
+        if: steps.filter.outputs.skip != 'true' && steps.plan.outputs.drift == 'true'
+        working-directory: environments/${{ matrix.environment }}
+        run: terraform show -no-color tfplan
+
+      - name: Create Issue on Drift
+        if: steps.filter.outputs.skip != 'true' && steps.plan.outputs.drift == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync(
+              'environments/${{ matrix.environment }}/plan_output.txt', 'utf8'
+            ).substring(0, 60000);
+
+            const title = `[Drift] Configuration drift detected in ${{ matrix.environment }}`;
+            const body = `## Infrastructure Drift Detected
+
+            **Environment:** \`${{ matrix.environment }}\`
+            **Detected at:** ${new Date().toISOString()}
+            **Workflow run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            ### Plan Output
+
+            <details><summary>Show details</summary>
+
+            \`\`\`terraform
+            ${planOutput}
+            \`\`\`
+
+            </details>
+
+            ### Action Required
+
+            - [ ] Review the drift details above
+            - [ ] Determine if this was an intentional manual change
+            - [ ] Either apply Terraform to fix drift or update Terraform code to match
+            - [ ] Close this issue once resolved
+
+            /cc @${{ github.repository_owner }}
+            `;
+
+            // Check for existing open drift issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'drift,${{ matrix.environment }}'
+            });
+
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['drift', '${{ matrix.environment }}', 'infrastructure']
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: `### Drift still present (${new Date().toISOString()})\n\nSee [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`
+              });
+            }
+
+      - name: Notify Slack on Drift
+        if: steps.filter.outputs.skip != 'true' && steps.plan.outputs.drift == 'true'
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "Infrastructure drift detected in *${{ matrix.environment }}*",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Infrastructure Drift Alert"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {"type": "mrkdwn", "text": "*Environment:*\n${{ matrix.environment }}"},
+                    {"type": "mrkdwn", "text": "*Status:*\n${{ steps.plan.outputs.status }}"}
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {"type": "plain_text", "text": "View Run"},
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true

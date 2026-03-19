@@ -1,0 +1,44 @@
+# -----------------------------------------------------------------------------
+# Dev Environment - terraform.tfvars.example
+# Copy this file to terraform.tfvars and fill in the values
+# -----------------------------------------------------------------------------
+
+# General
+project_name = "data-platform"
+environment  = "dev"
+owner        = "data-engineering"
+
+# AWS
+aws_region               = "eu-west-1"
+aws_vpc_cidr             = "10.0.0.0/16"
+aws_private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+aurora_instance_class    = "db.t3.medium"
+aurora_instance_count    = 1
+aurora_backup_retention  = 7
+aurora_engine_version    = "15.4"
+redshift_node_type       = "dc2.large"
+redshift_number_of_nodes = 1
+msk_instance_type        = "kafka.t3.small"
+msk_number_of_brokers    = 2
+msk_ebs_volume_size      = 100
+
+# Azure
+azure_subscription_id    = "00000000-0000-0000-0000-000000000000"
+azure_region             = "westeurope"
+azure_vnet_cidr          = "10.1.0.0/16"
+cosmosdb_max_throughput  = 4000
+cosmosdb_geo_replication = false
+synapse_sql_pool_sku     = "DW100c"
+synapse_spark_node_count = 3
+eventhubs_capacity       = 1
+
+# GCP
+gcp_project_id           = "my-gcp-project-id"
+gcp_region               = "europe-west1"
+gcp_vpc_cidr             = "10.2.0.0/16"
+cloudsql_tier            = "db-custom-2-8192"
+cloudsql_ha_enabled      = false
+cloudsql_backup_retention = 7
+cloudsql_read_replicas   = 0
+dataflow_machine_type    = "n1-standard-2"
+dataflow_max_workers     = 1
