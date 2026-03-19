@@ -54,7 +54,8 @@ resource "azurerm_cosmosdb_account" "main" {
 
   is_virtual_network_filter_enabled = true
   public_network_access_enabled     = false
-  local_authentication_disabled     = false
+  local_authentication_disabled     = true
+  access_key_metadata_writes_enabled = false
 
   virtual_network_rule {
     id = var.subnet_id
