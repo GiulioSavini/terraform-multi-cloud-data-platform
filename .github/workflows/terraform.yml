@@ -21,6 +21,7 @@ permissions:
   contents: read
   pull-requests: write
   id-token: write
+  security-events: write
 
 jobs:
   validate:
@@ -28,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -56,13 +57,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
+      - name: Run Trivy (IaC scan)
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          soft_fail: true
-          additional_args: "--minimum-severity MEDIUM"
+          scan-type: config
+          scan-ref: .
+          severity: MEDIUM,HIGH,CRITICAL
+          exit-code: 0
+          format: sarif
+          output: trivy-results.sarif
 
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@v12
@@ -75,11 +80,20 @@ jobs:
           output_format: cli,sarif
           output_file_path: console,results.sarif
 
-      - name: Upload SARIF
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+        continue-on-error: true
+
+      - name: Upload Checkov SARIF
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: results.sarif
+          category: checkov
         continue-on-error: true
 
   plan-dev:
@@ -89,7 +103,7 @@ jobs:
     environment: dev
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -167,7 +181,7 @@ jobs:
     environment: prd
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -211,7 +225,7 @@ jobs:
       url: https://console.aws.amazon.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -255,7 +269,7 @@ jobs:
       url: https://console.aws.amazon.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
