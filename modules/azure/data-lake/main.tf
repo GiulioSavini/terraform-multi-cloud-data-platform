@@ -20,8 +20,10 @@ resource "azurerm_storage_account" "adls" {
   account_replication_type = var.environment == "prd" ? "GRS" : "LRS"
   account_kind             = "StorageV2"
   is_hns_enabled           = true
-  min_tls_version          = "TLS1_2"
+  min_tls_version                 = "TLS1_2"
+  public_network_access_enabled   = false
   allow_nested_items_to_be_public = false
+  local_user_enabled              = false
 
   blob_properties {
     delete_retention_policy {
