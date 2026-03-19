@@ -97,10 +97,9 @@ jobs:
   plan-dev:
     name: Plan (Dev)
     needs: [validate]
-    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    if: vars.CLOUD_CREDENTIALS_CONFIGURED == 'true'
     runs-on: ubuntu-latest
     environment: dev
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -176,10 +175,9 @@ jobs:
   plan-prd:
     name: Plan (Prd)
     needs: [validate]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && vars.CLOUD_CREDENTIALS_CONFIGURED == 'true'
     runs-on: ubuntu-latest
     environment: prd
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -219,7 +217,7 @@ jobs:
   apply-dev:
     name: Apply (Dev)
     needs: [plan-dev]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.CLOUD_CREDENTIALS_CONFIGURED == 'true'
     runs-on: ubuntu-latest
     environment:
       name: dev
@@ -263,7 +261,7 @@ jobs:
   apply-prd:
     name: Apply (Prd)
     needs: [plan-prd, apply-dev]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.CLOUD_CREDENTIALS_CONFIGURED == 'true'
     runs-on: ubuntu-latest
     environment:
       name: prd
