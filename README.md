@@ -1,270 +1,405 @@
-# Multi-Cloud Data Platform / Piattaforma Dati Multi-Cloud
+# Terraform Multi-Cloud Data Platform
 
-> **EN**: A production-grade, multi-cloud data platform built with Terraform, spanning AWS, Azure, and GCP.
+> **EN**: A production-grade, multi-cloud data platform built with Terraform. Deploys complete data pipelines across AWS, Azure, and GCP with cross-cloud Kafka streaming replication, unified governance, and environment-aware sizing.
 >
-> **IT**: Una piattaforma dati multi-cloud di livello produttivo, costruita con Terraform, che si estende su AWS, Azure e GCP.
+> **IT**: Una piattaforma dati multi-cloud di livello produttivo costruita con Terraform. Distribuisce pipeline dati complete su AWS, Azure e GCP con replica streaming Kafka cross-cloud, governance unificata e dimensionamento per ambiente.
+
+[![Terraform CI/CD](https://github.com/GiulioSavini/terraform-multi-cloud-data-platform/actions/workflows/terraform.yml/badge.svg)](https://github.com/GiulioSavini/terraform-multi-cloud-data-platform/actions/workflows/terraform.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
-## Architecture / Architettura
+## Architecture
 
 ```mermaid
 graph LR
     subgraph AWS
-        Aurora[Aurora PostgreSQL] --> Glue[Glue ETL]
+        Aurora[Aurora PostgreSQL] --> Glue[AWS Glue ETL]
         Glue --> S3[S3 Data Lake]
-        S3 --> Redshift[Redshift]
+        S3 --> Redshift[Amazon Redshift]
         MSK[Amazon MSK]
     end
+
     subgraph Azure
-        Cosmos[CosmosDB] --> ADF[Data Factory]
+        Cosmos[CosmosDB] --> ADF[Azure Data Factory]
         ADF --> ADLS[ADLS Gen2]
         ADLS --> Synapse[Synapse Analytics]
-        EH[Event Hubs/Kafka]
+        EH[Event Hubs]
     end
+
     subgraph GCP
-        CloudSQL[CloudSQL] --> Dataflow[Dataflow]
+        CloudSQL[CloudSQL PostgreSQL] --> Dataflow[Dataflow]
         Dataflow --> GCS[Cloud Storage]
         GCS --> BQ[BigQuery]
         PubSub[Pub/Sub]
     end
-    MSK <-.->|Cross-cloud replication| EH
-    EH <-.->|Cross-cloud replication| PubSub
+
+    MSK <-.->|Kafka replication| EH
+    EH <-.->|Kafka replication| PubSub
 ```
 
-## Overview / Panoramica
-
-**EN**: This platform implements a complete data pipeline on each of the three major cloud providers, with cross-cloud streaming replication via Kafka-compatible protocols. Each cloud stack includes:
-
-- **Operational Database** - Aurora PostgreSQL (AWS), CosmosDB (Azure), CloudSQL (GCP)
-- **ETL/ELT Engine** - Glue (AWS), Data Factory (Azure), Dataflow (GCP)
-- **Data Lake** - S3 (AWS), ADLS Gen2 (Azure), GCS (GCP)
-- **Analytics Warehouse** - Redshift (AWS), Synapse Analytics (Azure), BigQuery (GCP)
-- **Streaming** - MSK (AWS), Event Hubs (Azure), Pub/Sub (GCP)
-
-**IT**: Questa piattaforma implementa una pipeline dati completa su ciascuno dei tre principali cloud provider, con replica streaming cross-cloud tramite protocolli compatibili con Kafka. Ogni stack cloud include:
-
-- **Database Operazionale** - Aurora PostgreSQL (AWS), CosmosDB (Azure), CloudSQL (GCP)
-- **Motore ETL/ELT** - Glue (AWS), Data Factory (Azure), Dataflow (GCP)
-- **Data Lake** - S3 (AWS), ADLS Gen2 (Azure), GCS (GCP)
-- **Data Warehouse Analitico** - Redshift (AWS), Synapse Analytics (Azure), BigQuery (GCP)
-- **Streaming** - MSK (AWS), Event Hubs (Azure), Pub/Sub (GCP)
+Each cloud provider runs a fully independent data pipeline (operational database, ETL engine, data lake, analytics warehouse) while cross-cloud streaming is handled through Kafka-compatible protocols across MSK, Event Hubs, and Pub/Sub.
 
 ---
 
-## Prerequisites / Prerequisiti
+## Features
 
-**EN**: Before deploying, ensure you have the following installed and configured:
-
-**IT**: Prima del deploy, assicurarsi di avere installato e configurato:
-
-| Tool | Version | Purpose / Scopo |
-|------|---------|-----------------|
-| Terraform | >= 1.7.0 | Infrastructure as Code |
-| Terragrunt | >= 0.60.0 | Configuration management / Gestione configurazione |
-| AWS CLI | >= 2.0 | AWS authentication / Autenticazione AWS |
-| Azure CLI | >= 2.60 | Azure authentication / Autenticazione Azure |
-| gcloud CLI | >= 494.0 | GCP authentication / Autenticazione GCP |
-| Docker | >= 24.0 | Workspace container (optional / opzionale) |
-| pre-commit | >= 3.0 | Git hooks |
-| tflint | >= 0.53 | Terraform linting |
-| tfsec | >= 1.28 | Security scanning / Scansione sicurezza |
-| checkov | >= 3.0 | Policy-as-code |
-| make | >= 4.0 | Build automation |
-
-### Cloud Accounts / Account Cloud
-
-**EN**:
-1. **AWS**: IAM user or role with `AdministratorAccess` (or scoped policies for each service). Configure with `aws configure`.
-2. **Azure**: Service principal or user with `Contributor` + `User Access Administrator` on the subscription. Login with `az login`.
-3. **GCP**: Service account with `Editor` + `Security Admin` roles. Authenticate with `gcloud auth application-default login`.
-
-**IT**:
-1. **AWS**: Utente IAM o ruolo con `AdministratorAccess` (o policy specifiche per ogni servizio). Configurare con `aws configure`.
-2. **Azure**: Service principal o utente con `Contributor` + `User Access Administrator` sulla sottoscrizione. Login con `az login`.
-3. **GCP**: Service account con ruoli `Editor` + `Security Admin`. Autenticarsi con `gcloud auth application-default login`.
+| Category | Details |
+|----------|---------|
+| **Multi-Cloud** | Parallel stacks on AWS, Azure, and GCP with consistent module structure |
+| **Data Lakes** | S3, ADLS Gen2, and GCS with lifecycle policies and tiered storage |
+| **Databases** | Aurora PostgreSQL, CosmosDB (SQL API), CloudSQL PostgreSQL |
+| **Analytics** | Redshift, Synapse Analytics, BigQuery |
+| **ETL / ELT** | AWS Glue, Azure Data Factory, GCP Dataflow |
+| **Streaming** | Amazon MSK, Azure Event Hubs, GCP Pub/Sub with cross-cloud replication |
+| **Governance** | Shared governance module for tagging, policies, and audit |
+| **Environments** | dev / stg / prd with per-environment sizing and cost controls |
+| **Security** | Encryption at rest and in transit, private endpoints, KMS, RBAC |
+| **CI/CD** | GitHub Actions with plan-on-PR, auto-apply-on-merge, drift detection |
+| **IaC Tooling** | Terraform + Terragrunt, tflint, tfsec, checkov, pre-commit hooks |
+| **Docker** | Self-contained workspace image with all CLI tools pre-installed |
 
 ---
 
-## Quick Start / Avvio Rapido
+## Quick Start (One Command)
 
-### Using Docker / Utilizzo con Docker
-
-```bash
-# Build workspace image / Costruisci immagine workspace
-make docker-build
-
-# Run workspace / Avvia workspace
-make docker-run
-```
-
-### Direct Deployment / Deploy Diretto
+The fastest way to get the platform running in a development environment:
 
 ```bash
-# 1. Clone the repository / Clona il repository
-git clone <repository-url>
+git clone https://github.com/GiulioSavini/terraform-multi-cloud-data-platform.git
 cd terraform-multi-cloud-data-platform
+./scripts/bootstrap.sh dev
+```
 
-# 2. Install pre-commit hooks / Installa gli hook pre-commit
-pre-commit install
+`bootstrap.sh` performs four steps automatically:
 
-# 3. Copy and edit tfvars / Copia e modifica tfvars
-cp environments/dev/terraform.tfvars.example environments/dev/terraform.tfvars
-vim environments/dev/terraform.tfvars
+1. **Validates prerequisites** -- checks that Terraform, cloud CLIs, and linting tools are installed (`validate-prereqs.sh`).
+2. **Installs pre-commit hooks** -- sets up formatting and security checks on every commit.
+3. **Creates remote state backends** -- provisions S3/Azure Blob/GCS buckets for Terraform state (`setup-backend.sh`).
+4. **Auto-discovers variables** -- detects cloud account IDs, regions, and project names (`get-variables.sh`).
 
-# 4. Initialize / Inizializza
-make init ENV=dev
+After the bootstrap completes, review and apply:
 
-# 5. Review the plan / Rivedi il piano
+```bash
 make plan ENV=dev
-
-# 6. Apply / Applica
 make apply ENV=dev
 ```
 
-### Deployment Order / Ordine di Deploy
+---
 
-**EN**: Deploy modules in this order to satisfy dependencies:
+## Manual Setup
 
-**IT**: Eseguire il deploy dei moduli in questo ordine per soddisfare le dipendenze:
+### Prerequisites
 
-1. **Networking** (all clouds in parallel / tutti i cloud in parallelo)
-2. **Data Lakes** (S3, ADLS, GCS in parallel / in parallelo)
-3. **Databases** (Aurora, CosmosDB, CloudSQL in parallel / in parallelo)
-4. **Streaming** (MSK, Event Hubs, Pub/Sub in parallel / in parallelo)
-5. **ETL/Processing** (Glue, Data Factory, Dataflow)
+| Tool | Minimum Version | Purpose |
+|------|----------------|---------|
+| Terraform | >= 1.7.0 | Infrastructure as Code |
+| Terragrunt | >= 0.60.0 | Configuration management and DRY patterns |
+| AWS CLI | >= 2.0 | AWS authentication |
+| Azure CLI | >= 2.60 | Azure authentication |
+| gcloud CLI | >= 494.0 | GCP authentication |
+| Docker | >= 24.0 | Workspace container (optional) |
+| pre-commit | >= 3.0 | Git hooks for formatting and security |
+| tflint | >= 0.53 | Terraform linting |
+| tfsec | >= 1.28 | Security scanning |
+| checkov | >= 3.0 | Policy-as-code |
+| make | >= 4.0 | Build automation |
+
+Run the validation script to confirm everything is installed:
+
+```bash
+./scripts/validate-prereqs.sh
+```
+
+### Cloud Authentication
+
+1. **AWS** -- IAM user or role with `AdministratorAccess` (or scoped policies). Configure with `aws configure`.
+2. **Azure** -- Service principal or user with `Contributor` + `User Access Administrator`. Login with `az login`.
+3. **GCP** -- Service account with `Editor` + `Security Admin` roles. Authenticate with `gcloud auth application-default login`.
+
+### Step-by-Step Deployment
+
+```bash
+# 1. Clone and enter the repository
+git clone https://github.com/GiulioSavini/terraform-multi-cloud-data-platform.git
+cd terraform-multi-cloud-data-platform
+
+# 2. Install pre-commit hooks
+pre-commit install
+
+# 3. Create remote state backends
+./scripts/setup-backend.sh dev
+
+# 4. Populate variables
+cp environments/dev/terraform.tfvars.example environments/dev/terraform.tfvars
+vim environments/dev/terraform.tfvars
+
+# 5. Initialize Terraform
+make init ENV=dev
+
+# 6. Review the execution plan
+make plan ENV=dev
+
+# 7. Apply
+make apply ENV=dev
+```
+
+#### Deployment Order
+
+Deploy modules in this order to satisfy dependencies:
+
+1. **Networking** (all clouds in parallel)
+2. **Data Lakes** (S3, ADLS, GCS in parallel)
+3. **Databases** (Aurora, CosmosDB, CloudSQL in parallel)
+4. **Streaming** (MSK, Event Hubs, Pub/Sub in parallel)
+5. **ETL / Processing** (Glue, Data Factory, Dataflow)
 6. **Analytics** (Redshift, Synapse, BigQuery)
 7. **Governance** (shared module)
 8. **Cross-cloud Streaming** (shared module)
 
 ---
 
-## Environment Sizing / Dimensionamento Ambienti
+## Scripts Reference
 
-### AWS
-
-| Resource | Dev | Staging | Production |
-|----------|-----|---------|------------|
-| Aurora Instance | `db.t3.medium` (1 instance) | `db.r6g.large` (2 instances) | `db.r6g.xlarge` (3 instances, multi-AZ) |
-| Aurora Backup | 7 days | 14 days | 35 days |
-| Redshift Nodes | `dc2.large` x1 | `ra3.xlplus` x2 | `ra3.xlplus` x4 |
-| MSK Brokers | `kafka.t3.small` x2 | `kafka.m5.large` x3 | `kafka.m5.2xlarge` x3 |
-| MSK Storage | 100 GB | 500 GB | 2000 GB |
-| S3 Lifecycle | IA 30d, Glacier 90d | IA 30d, Glacier 90d | IA 60d, Glacier 180d |
-
-### Azure
-
-| Resource | Dev | Staging | Production |
-|----------|-----|---------|------------|
-| CosmosDB RU/s | 400 (autoscale) | 1000 (autoscale) | 4000 (autoscale) |
-| CosmosDB Geo-Replication | Disabled | Disabled | Enabled (2 regions) |
-| Synapse SQL Pool | DW100c | DW200c | DW500c |
-| Synapse Spark Pool | Small (3 nodes) | Medium (5 nodes) | Large (10 nodes) |
-| Event Hubs | Standard, 1 TU | Standard, 2 TU | Standard, 4 TU |
-| ADLS Lifecycle | Cool 30d, Archive 90d | Cool 30d, Archive 90d | Cool 60d, Archive 180d |
-
-### GCP
-
-| Resource | Dev | Staging | Production |
-|----------|-----|---------|------------|
-| CloudSQL | `db-custom-2-8192` | `db-custom-4-16384` | `db-custom-8-32768` (HA) |
-| CloudSQL Backup | 7 days | 14 days | 35 days |
-| CloudSQL Read Replicas | 0 | 1 | 2 |
-| BigQuery | On-demand | On-demand | Flat-rate 500 slots |
-| Dataflow Workers | `n1-standard-2` x1 | `n1-standard-4` x2 | `n1-standard-8` x4 |
-| GCS Lifecycle | Nearline 30d, Coldline 90d | Nearline 30d, Coldline 90d | Nearline 60d, Coldline 180d |
+| Script | Description |
+|--------|-------------|
+| `scripts/bootstrap.sh` | One-command setup: validates tools, creates backends, discovers variables, and initializes Terraform. Usage: `./scripts/bootstrap.sh [dev\|stg\|prd]` |
+| `scripts/validate-prereqs.sh` | Checks that all required CLI tools and minimum versions are installed |
+| `scripts/setup-backend.sh` | Creates remote state backends (S3 bucket, Azure Blob container, GCS bucket) for the target environment |
+| `scripts/get-variables.sh` | Auto-discovers cloud account IDs, subscription IDs, project names, and regions to populate tfvars |
+| `scripts/destroy-all.sh` | Tears down all resources across all three clouds for a given environment in the correct reverse order |
 
 ---
 
-## Project Structure / Struttura del Progetto
+## Examples
+
+The `examples/` directory contains self-contained configurations you can use as a starting point or for testing individual stacks.
+
+| Example | Description |
+|---------|-------------|
+| `examples/complete` | Full multi-cloud deployment with all modules enabled |
+| `examples/aws-data-lake` | AWS-only stack: Aurora, Glue, S3, Redshift, MSK |
+| `examples/azure-analytics` | Azure-only stack: CosmosDB, Data Factory, ADLS, Synapse, Event Hubs |
+| `examples/gcp-bigquery` | GCP-only stack: CloudSQL, Dataflow, GCS, BigQuery, Pub/Sub |
+| `examples/streaming` | Cross-cloud streaming replication between MSK, Event Hubs, and Pub/Sub |
+
+---
+
+## Environment Sizing
+
+| Resource | Dev | Staging | Production | Estimated Monthly Cost (prd) |
+|----------|-----|---------|------------|------------------------------|
+| **Aurora PostgreSQL** | `db.t3.medium` x1 | `db.r6g.large` x2 | `db.r6g.xlarge` x3 (multi-AZ) | ~$1,800 |
+| **Redshift** | `dc2.large` x1 | `ra3.xlplus` x2 | `ra3.xlplus` x4 | ~$4,400 |
+| **Amazon MSK** | `kafka.t3.small` x2, 100 GB | `kafka.m5.large` x3, 500 GB | `kafka.m5.2xlarge` x3, 2 TB | ~$2,600 |
+| **CosmosDB** | 400 RU/s (autoscale) | 1,000 RU/s (autoscale) | 4,000 RU/s (autoscale, 2 regions) | ~$1,500 |
+| **Synapse Analytics** | DW100c, Spark Small (3 nodes) | DW200c, Spark Medium (5 nodes) | DW500c, Spark Large (10 nodes) | ~$5,000 |
+| **Event Hubs** | Standard, 1 TU | Standard, 2 TU | Standard, 4 TU | ~$400 |
+| **CloudSQL PostgreSQL** | `db-custom-2-8192` | `db-custom-4-16384`, 1 replica | `db-custom-8-32768` (HA), 2 replicas | ~$1,200 |
+| **BigQuery** | On-demand | On-demand | Flat-rate, 500 slots | ~$10,000 |
+| **Dataflow** | `n1-standard-2` x1 | `n1-standard-4` x2 | `n1-standard-8` x4 | ~$1,400 |
+
+> **Note**: Cost estimates are approximate and vary by region, usage patterns, and reserved pricing. Dev environments can be destroyed nightly to minimize cost.
+
+Storage lifecycle policies across all clouds:
+
+| Tier | Dev / Stg | Production |
+|------|-----------|------------|
+| Warm (IA / Cool / Nearline) | 30 days | 60 days |
+| Cold (Glacier / Archive / Coldline) | 90 days | 180 days |
+
+---
+
+## Project Structure
 
 ```
 terraform-multi-cloud-data-platform/
-├── .github/workflows/          # CI/CD pipelines
+├── .github/
+│   └── workflows/
+│       ├── terraform.yml              # Main CI/CD pipeline (validate, plan, apply)
+│       └── drift-detection.yml        # Scheduled drift detection
 ├── environments/
-│   ├── dev/                    # Development / Sviluppo
-│   ├── stg/                    # Staging / Pre-produzione
-│   └── prd/                    # Production / Produzione
+│   ├── dev/                           # Development environment tfvars and config
+│   ├── stg/                           # Staging environment tfvars and config
+│   └── prd/                           # Production environment tfvars and config
 ├── modules/
 │   ├── aws/
-│   │   ├── aurora/             # Aurora PostgreSQL
-│   │   ├── redshift/           # Redshift cluster
-│   │   ├── data-lake/          # S3 Data Lake
-│   │   ├── glue/               # Glue ETL
-│   │   ├── msk/                # Managed Streaming for Kafka
-│   │   └── networking/         # VPC, subnets, endpoints
+│   │   ├── aurora/                    # Aurora PostgreSQL cluster
+│   │   ├── redshift/                  # Redshift data warehouse
+│   │   ├── data-lake/                 # S3 Data Lake with lifecycle rules
+│   │   ├── glue/                      # Glue ETL jobs and crawlers
+│   │   ├── msk/                       # Amazon Managed Streaming for Kafka
+│   │   └── networking/                # VPC, subnets, endpoints
 │   ├── azure/
-│   │   ├── cosmosdb/           # CosmosDB (SQL API)
-│   │   ├── synapse/            # Synapse Analytics
-│   │   ├── data-lake/          # ADLS Gen2
-│   │   ├── data-factory/       # Azure Data Factory
-│   │   ├── kafka/              # Event Hubs (Kafka protocol)
-│   │   └── networking/         # VNet, subnets, private endpoints
+│   │   ├── cosmosdb/                  # CosmosDB (SQL API)
+│   │   ├── synapse/                   # Synapse Analytics (SQL + Spark pools)
+│   │   ├── data-lake/                 # ADLS Gen2 with lifecycle management
+│   │   ├── data-factory/              # Azure Data Factory pipelines
+│   │   ├── kafka/                     # Event Hubs with Kafka protocol
+│   │   └── networking/                # VNet, subnets, private endpoints
 │   ├── gcp/
-│   │   ├── cloudsql/           # CloudSQL PostgreSQL
-│   │   ├── bigquery/           # BigQuery
-│   │   ├── data-lake/          # GCS Data Lake
-│   │   ├── dataflow/           # Dataflow
-│   │   ├── kafka/              # Pub/Sub
-│   │   └── networking/         # VPC, subnets, firewall
+│   │   ├── cloudsql/                  # CloudSQL PostgreSQL
+│   │   ├── bigquery/                  # BigQuery datasets and tables
+│   │   ├── data-lake/                 # GCS Data Lake with lifecycle rules
+│   │   ├── dataflow/                  # Dataflow streaming and batch jobs
+│   │   ├── kafka/                     # Pub/Sub topics and subscriptions
+│   │   └── networking/                # VPC, subnets, firewall rules
 │   └── shared/
-│       ├── governance/         # Cross-cloud governance
-│       └── streaming/          # Cross-cloud streaming
-├── terragrunt.hcl              # Terragrunt root config
-├── Makefile                    # Build targets
-├── Dockerfile                  # Workspace image
-└── README.md                   # This file / Questo file
+│       ├── governance/                # Cross-cloud tagging, policies, audit
+│       └── streaming/                 # Cross-cloud Kafka replication
+├── scripts/
+│   ├── bootstrap.sh                   # One-command setup
+│   ├── validate-prereqs.sh            # Tool version checker
+│   ├── setup-backend.sh               # Remote state backend provisioning
+│   ├── get-variables.sh               # Auto-discover cloud variables
+│   └── destroy-all.sh                 # Full teardown across all clouds
+├── examples/
+│   ├── complete/                      # Full multi-cloud example
+│   ├── aws-data-lake/                 # AWS-only example
+│   ├── azure-analytics/               # Azure-only example
+│   ├── gcp-bigquery/                  # GCP-only example
+│   └── streaming/                     # Cross-cloud streaming example
+├── terragrunt.hcl                     # Terragrunt root configuration
+├── Makefile                           # Build and deployment targets
+├── Dockerfile                         # Workspace container image
+├── CONTRIBUTING.md                    # Contribution guidelines
+├── SECURITY.md                        # Security policy
+├── CHANGELOG.md                       # Release history
+├── LICENSE                            # MIT License
+└── README.md                          # This file
 ```
 
 ---
 
-## Security / Sicurezza
+## Makefile Commands
 
-**EN**: This platform implements security best practices across all clouds:
-
-**IT**: Questa piattaforma implementa le best practice di sicurezza su tutti i cloud:
-
-- **Encryption at rest** / Crittografia a riposo: KMS (AWS), Customer-managed keys (Azure), CMEK (GCP)
-- **Encryption in transit** / Crittografia in transito: TLS 1.2+ everywhere / ovunque
-- **Network isolation** / Isolamento di rete: Private subnets, VPC endpoints, Private Link
-- **IAM least privilege** / IAM con minimi privilegi: Dedicated roles per service / Ruoli dedicati per servizio
-- **Backup & DR** / Backup e Disaster Recovery: Automated backups with configurable retention / Backup automatici con ritenzione configurabile
-- **Audit logging** / Log di audit: CloudTrail, Azure Monitor, Cloud Audit Logs
+| Command | Description |
+|---------|-------------|
+| `make help` | Show all available targets with descriptions |
+| `make init ENV=<env>` | Initialize Terraform for the specified environment |
+| `make plan ENV=<env>` | Generate and display an execution plan |
+| `make apply ENV=<env>` | Apply the previously generated plan |
+| `make apply-auto ENV=<env>` | Apply with auto-approve (use with caution) |
+| `make destroy ENV=<env>` | Destroy all resources for an environment (requires confirmation) |
+| `make fmt` | Format all Terraform files recursively |
+| `make validate ENV=<env>` | Validate Terraform configuration |
+| `make lint` | Run tflint on all modules |
+| `make security` | Run tfsec and checkov security scans |
+| `make test` | Run all checks: fmt, validate, lint, security |
+| `make clean` | Remove `.terraform/` caches, plan files, and lock files |
+| `make output ENV=<env>` | Show Terraform outputs |
+| `make state-list ENV=<env>` | List resources in Terraform state |
+| `make console ENV=<env>` | Open Terraform interactive console |
+| `make graph ENV=<env>` | Generate resource dependency graph (PNG) |
+| `make docker-build` | Build the Docker workspace image |
+| `make docker-run` | Run the Docker workspace with mounted credentials |
+| `make terragrunt-init ENV=<env>` | Initialize with Terragrunt |
+| `make terragrunt-plan ENV=<env>` | Plan with Terragrunt |
+| `make terragrunt-apply ENV=<env>` | Apply with Terragrunt |
 
 ---
 
-## Useful Commands / Comandi Utili
+## Teardown
+
+To destroy a single environment:
 
 ```bash
-make help                  # Show all available commands / Mostra tutti i comandi
-make init ENV=prd          # Initialize production / Inizializza produzione
-make plan ENV=prd          # Plan production changes / Pianifica modifiche produzione
-make apply ENV=prd         # Apply production changes / Applica modifiche produzione
-make destroy ENV=dev       # Destroy dev environment / Distruggi ambiente dev
-make fmt                   # Format all Terraform files / Formatta tutti i file Terraform
-make lint                  # Run linter / Esegui linter
-make security              # Run security scans / Esegui scansioni sicurezza
-make test                  # Run all checks / Esegui tutti i controlli
+make destroy ENV=dev
 ```
 
----
+To tear down all resources across all three clouds for an environment (in the correct reverse dependency order):
 
-## Contributing / Contribuire
+```bash
+./scripts/destroy-all.sh dev
+```
 
-**EN**: Please follow these guidelines:
-1. Create a feature branch from `main`
-2. Run `make test` before committing
-3. Use conventional commits (enforced by commitizen)
-4. Open a pull request with a clear description
-
-**IT**: Seguire queste linee guida:
-1. Creare un branch feature da `main`
-2. Eseguire `make test` prima del commit
-3. Utilizzare conventional commits (imposto da commitizen)
-4. Aprire una pull request con una descrizione chiara
+> **Warning**: Destruction is irreversible. The `destroy` target requires interactive confirmation. Always verify you are targeting the correct environment.
 
 ---
 
-## License / Licenza
+## CI/CD Pipeline
 
-MIT License - See [LICENSE](LICENSE) for details / Vedi [LICENSE](LICENSE) per dettagli.
+The repository includes two GitHub Actions workflows:
+
+### `terraform.yml` -- Main Pipeline
+
+| Stage | Trigger | Description |
+|-------|---------|-------------|
+| **Validate & Lint** | Push and PR to `main` | Runs `terraform fmt -check`, tflint across all modules |
+| **Security Scan** | Push and PR to `main` | Runs tfsec and checkov; uploads SARIF results to GitHub Security |
+| **Plan (Dev)** | Push and PR to `main` | Plans against the dev environment; posts plan output as a PR comment |
+| **Plan (Prd)** | Push to `main` only | Plans against the production environment |
+| **Apply (Dev)** | Push to `main` only | Auto-applies to dev after successful plan |
+| **Apply (Prd)** | Push to `main` only | Auto-applies to production after dev succeeds (requires environment approval) |
+
+### `drift-detection.yml` -- Drift Detection
+
+Runs on a schedule to detect configuration drift between the Terraform state and live cloud resources.
+
+### Required GitHub Secrets
+
+| Secret | Description |
+|--------|-------------|
+| `AWS_ROLE_ARN_DEV` | IAM role ARN for dev (OIDC federation) |
+| `AWS_ROLE_ARN_PRD` | IAM role ARN for production (OIDC federation) |
+| `AZURE_CLIENT_ID_DEV` | Azure AD app client ID for dev |
+| `AZURE_CLIENT_ID_PRD` | Azure AD app client ID for production |
+| `AZURE_TENANT_ID` | Azure AD tenant ID (shared across environments) |
+| `AZURE_SUBSCRIPTION_ID_DEV` | Azure subscription ID for dev |
+| `AZURE_SUBSCRIPTION_ID_PRD` | Azure subscription ID for production |
+| `GCP_WIF_PROVIDER_DEV` | GCP Workload Identity Federation provider for dev |
+| `GCP_WIF_PROVIDER_PRD` | GCP Workload Identity Federation provider for production |
+| `GCP_SA_EMAIL_DEV` | GCP service account email for dev |
+| `GCP_SA_EMAIL_PRD` | GCP service account email for production |
+
+---
+
+## Security
+
+### Encryption at Rest
+
+| Cloud | Mechanism |
+|-------|-----------|
+| AWS | AWS KMS customer-managed keys (CMK) for S3, Aurora, Redshift, MSK |
+| Azure | Customer-managed keys in Azure Key Vault for ADLS, CosmosDB, Synapse |
+| GCP | Customer-managed encryption keys (CMEK) for GCS, CloudSQL, BigQuery |
+
+### Encryption in Transit
+
+All inter-service and client-to-service communication enforces TLS 1.2 or higher. Cross-cloud Kafka replication uses mutual TLS (mTLS) authentication.
+
+### Network Isolation
+
+- **AWS**: Private subnets, VPC endpoints for S3/Glue/Redshift, security groups with least-privilege rules
+- **Azure**: Private endpoints for all PaaS services, NSGs, service endpoints
+- **GCP**: Private Google Access, VPC Service Controls, firewall rules
+
+### Identity and Access
+
+- IAM roles follow the principle of least privilege with dedicated service roles per module
+- RBAC policies enforce separation between environments (dev/stg/prd)
+- OIDC federation for CI/CD -- no long-lived credentials stored in GitHub
+
+### Audit and Compliance
+
+- AWS CloudTrail, Azure Monitor Diagnostic Settings, and GCP Cloud Audit Logs are enabled across all environments
+- checkov and tfsec run on every PR to catch misconfigurations before they are deployed
+
+---
+
+## Contributing
+
+Contributions are welcome. Please follow these guidelines:
+
+1. Fork the repository and create a feature branch from `main`.
+2. Run `make test` before committing to ensure formatting, validation, linting, and security checks pass.
+3. Use [Conventional Commits](https://www.conventionalcommits.org/) (enforced by commitizen).
+4. Open a pull request with a clear description of the changes and their motivation.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed instructions.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
