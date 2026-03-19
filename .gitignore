@@ -1,0 +1,51 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.tfvars
+!*.tfvars.example
+*.tfplan
+*.tfplan.binary
+
+# Terragrunt
+.terragrunt-cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+*.pem
+*.key
+*.crt
+*.env
+.env.*
+secrets/
+credentials/
+
+# Logs
+*.log
+logs/
+
+# Build
+dist/
+build/
