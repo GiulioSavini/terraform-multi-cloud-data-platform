@@ -30,11 +30,6 @@ variable "eventhubs_connection_string" {
   sensitive   = true
 }
 
-variable "pubsub_topics" {
-  description = "Map of GCP Pub/Sub topic IDs"
-  type        = map(string)
-}
-
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)

@@ -33,6 +33,12 @@ variable "aws_region" {
   type        = string
 }
 
+variable "cloudwatch_kms_key_arn" {
+  description = "ARN of the KMS key for CloudWatch Log Group encryption"
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)

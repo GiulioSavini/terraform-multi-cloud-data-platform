@@ -8,7 +8,6 @@ module "governance" {
 
   project_name        = var.project_name
   environment         = var.environment
-  aws_region          = var.aws_region
   azure_region        = var.azure_region
   azure_resource_group_name = module.azure_networking.resource_group_name
   gcp_region          = var.gcp_region
@@ -25,6 +24,5 @@ module "streaming" {
   msk_bootstrap_brokers   = module.aws_msk.bootstrap_brokers_tls
   eventhubs_namespace     = module.azure_kafka.namespace_name
   eventhubs_connection_string = module.azure_kafka.primary_connection_string
-  pubsub_topics           = module.gcp_kafka.topic_ids
   tags                    = local.common_tags
 }

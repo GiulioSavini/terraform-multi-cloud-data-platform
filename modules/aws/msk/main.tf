@@ -32,7 +32,7 @@ resource "aws_kms_alias" "msk" {
 
 resource "aws_cloudwatch_log_group" "msk" {
   name              = "/aws/msk/${local.name_prefix}"
-  retention_in_days = var.environment == "prd" ? 90 : 30
+  retention_in_days = 365
   kms_key_id        = aws_kms_key.msk.arn
 
   tags = var.tags
@@ -77,6 +77,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "msk_logs" {
   rule {
     id     = "log-retention"
     status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
 
     transition {
       days          = 30

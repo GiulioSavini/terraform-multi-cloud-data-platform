@@ -49,11 +49,6 @@ variable "network_id" {
   type        = string
 }
 
-variable "private_ip_range" {
-  description = "Private IP range name for service networking"
-  type        = string
-}
-
 variable "database_name" {
   description = "Name of the default database"
   type        = string

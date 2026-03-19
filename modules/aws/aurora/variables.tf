@@ -85,7 +85,7 @@ variable "preferred_maintenance_window" {
 variable "deletion_protection" {
   description = "Enable deletion protection"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "tags" {
