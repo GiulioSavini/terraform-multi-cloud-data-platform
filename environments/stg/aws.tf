@@ -27,7 +27,6 @@ module "aws_aurora" {
 
   project_name            = var.project_name
   environment             = var.environment
-  vpc_id                  = module.aws_networking.vpc_id
   subnet_ids              = module.aws_networking.private_subnet_ids
   security_group_ids      = [module.aws_networking.aurora_security_group_id]
   instance_class          = var.aurora_instance_class
@@ -42,7 +41,6 @@ module "aws_redshift" {
 
   project_name       = var.project_name
   environment        = var.environment
-  vpc_id             = module.aws_networking.vpc_id
   subnet_ids         = module.aws_networking.private_subnet_ids
   security_group_ids = [module.aws_networking.redshift_security_group_id]
   node_type          = var.redshift_node_type
@@ -60,7 +58,6 @@ module "aws_glue" {
   s3_curated_path       = "s3://${module.aws_data_lake.curated_bucket_name}"
   s3_analytics_path     = "s3://${module.aws_data_lake.analytics_bucket_name}"
   data_lake_kms_key_arn = module.aws_data_lake.kms_key_arn
-  vpc_id                = module.aws_networking.vpc_id
   subnet_id             = module.aws_networking.private_subnet_ids[0]
   security_group_ids    = [module.aws_networking.glue_security_group_id]
   tags                  = local.common_tags
@@ -71,7 +68,6 @@ module "aws_msk" {
 
   project_name       = var.project_name
   environment        = var.environment
-  vpc_id             = module.aws_networking.vpc_id
   subnet_ids         = module.aws_networking.private_subnet_ids
   security_group_ids = [module.aws_networking.msk_security_group_id]
   instance_type      = var.msk_instance_type
