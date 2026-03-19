@@ -1,0 +1,6 @@
+# Azure Analytics Example
+# Copy to terraform.tfvars and fill in your values
+
+subscription_id  = "00000000-0000-0000-0000-000000000000"
+location         = "westeurope"
+synapse_password = "Ch4ng3M3!Str0ng_P@ss"
