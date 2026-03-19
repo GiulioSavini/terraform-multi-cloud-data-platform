@@ -8,11 +8,6 @@ variable "environment" {
   type        = string
 }
 
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-}
-
 variable "azure_region" {
   description = "Azure region"
   type        = string

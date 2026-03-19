@@ -32,7 +32,6 @@ module "gcp_cloudsql" {
   backup_retention = var.cloudsql_backup_retention
   read_replicas    = var.cloudsql_read_replicas
   network_id       = module.gcp_networking.vpc_id
-  private_ip_range = module.gcp_networking.private_ip_range_name
 }
 
 module "gcp_bigquery" {
