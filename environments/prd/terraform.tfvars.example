@@ -1,0 +1,45 @@
+# -----------------------------------------------------------------------------
+# Production Environment - terraform.tfvars.example
+# Copy this file to terraform.tfvars and fill in the values
+# CAUTION: Production environment - review all changes carefully
+# -----------------------------------------------------------------------------
+
+# General
+project_name = "data-platform"
+environment  = "prd"
+owner        = "data-engineering"
+
+# AWS
+aws_region               = "eu-west-1"
+aws_vpc_cidr             = "10.20.0.0/16"
+aws_private_subnet_cidrs = ["10.20.1.0/24", "10.20.2.0/24", "10.20.3.0/24"]
+aurora_instance_class    = "db.r6g.xlarge"
+aurora_instance_count    = 3
+aurora_backup_retention  = 35
+aurora_engine_version    = "15.4"
+redshift_node_type       = "ra3.xlplus"
+redshift_number_of_nodes = 4
+msk_instance_type        = "kafka.m5.2xlarge"
+msk_number_of_brokers    = 3
+msk_ebs_volume_size      = 2000
+
+# Azure
+azure_subscription_id    = "00000000-0000-0000-0000-000000000000"
+azure_region             = "westeurope"
+azure_vnet_cidr          = "10.21.0.0/16"
+cosmosdb_max_throughput  = 40000
+cosmosdb_geo_replication = true
+synapse_sql_pool_sku     = "DW500c"
+synapse_spark_node_count = 10
+eventhubs_capacity       = 4
+
+# GCP
+gcp_project_id            = "my-gcp-project-id"
+gcp_region                = "europe-west1"
+gcp_vpc_cidr              = "10.22.0.0/16"
+cloudsql_tier             = "db-custom-8-32768"
+cloudsql_ha_enabled       = true
+cloudsql_backup_retention = 35
+cloudsql_read_replicas    = 2
+dataflow_machine_type     = "n1-standard-8"
+dataflow_max_workers      = 4
