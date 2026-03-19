@@ -1,0 +1,6 @@
+aws_region            = "eu-west-1"
+azure_subscription_id = "00000000-0000-0000-0000-000000000000"
+azure_location        = "westeurope"
+gcp_project_id        = "my-gcp-project"
+gcp_region            = "europe-west1"
+synapse_password      = "Ch4ng3M3!Str0ng"
