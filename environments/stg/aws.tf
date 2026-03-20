@@ -32,6 +32,7 @@ module "aws_aurora" {
   instance_class          = var.aurora_instance_class
   instance_count          = var.aurora_instance_count
   engine_version          = var.aurora_engine_version
+  master_username         = var.aurora_master_username
   backup_retention_period = var.aurora_backup_retention
   tags                    = local.common_tags
 }
