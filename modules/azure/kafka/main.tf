@@ -26,7 +26,7 @@ resource "azurerm_eventhub_namespace" "main" {
     public_network_access_enabled  = false
   }
 
-  local_authentication_enabled  = true
+  local_authentication_enabled  = false
   public_network_access_enabled = false
   minimum_tls_version           = "1.2"
 

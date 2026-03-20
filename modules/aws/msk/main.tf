@@ -103,7 +103,7 @@ resource "aws_msk_configuration" "main" {
   description       = "MSK configuration for ${local.name_prefix}"
 
   server_properties = <<-PROPERTIES
-    auto.create.topics.enable=true
+    auto.create.topics.enable=false
     delete.topic.enable=true
     default.replication.factor=3
     min.insync.replicas=2

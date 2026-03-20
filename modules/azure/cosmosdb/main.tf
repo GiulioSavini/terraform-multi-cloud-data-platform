@@ -52,24 +52,30 @@ resource "azurerm_cosmosdb_account" "main" {
     }
   }
 
-  is_virtual_network_filter_enabled = true
-  public_network_access_enabled     = false
-  local_authentication_disabled     = true
+  is_virtual_network_filter_enabled  = true
+  public_network_access_enabled      = false
+  local_authentication_disabled      = true
   access_key_metadata_writes_enabled = false
 
   virtual_network_rule {
     id = var.subnet_id
   }
 
-  backup {
-    type                = var.environment == "prd" ? "Continuous" : "Periodic"
-    interval_in_minutes = var.environment == "prd" ? null : 240
-    retention_in_hours  = var.environment == "prd" ? null : 8
-    storage_redundancy  = var.environment == "prd" ? null : "Local"
+  dynamic "backup" {
+    for_each = contains([for c in var.capabilities : c], "EnableServerless") ? [] : [1]
+    content {
+      type                = var.environment == "prd" ? "Continuous" : "Periodic"
+      interval_in_minutes = var.environment == "prd" ? null : 240
+      retention_in_hours  = var.environment == "prd" ? null : 8
+      storage_redundancy  = var.environment == "prd" ? null : "Local"
+    }
   }
 
-  capabilities {
-    name = "EnableServerless"
+  dynamic "capabilities" {
+    for_each = var.capabilities
+    content {
+      name = capabilities.value
+    }
   }
 
   tags = merge(var.tags, {
@@ -86,8 +92,11 @@ resource "azurerm_cosmosdb_sql_database" "main" {
   resource_group_name = var.resource_group_name
   account_name        = azurerm_cosmosdb_account.main.name
 
-  autoscale_settings {
-    max_throughput = var.max_throughput
+  dynamic "autoscale_settings" {
+    for_each = contains([for c in var.capabilities : c], "EnableServerless") ? [] : [1]
+    content {
+      max_throughput = var.max_throughput
+    }
   }
 }
 
@@ -127,8 +136,11 @@ resource "azurerm_cosmosdb_sql_container" "events" {
 
   default_ttl = 2592000 # 30 days
 
-  autoscale_settings {
-    max_throughput = var.max_throughput
+  dynamic "autoscale_settings" {
+    for_each = contains([for c in var.capabilities : c], "EnableServerless") ? [] : [1]
+    content {
+      max_throughput = var.max_throughput
+    }
   }
 }
 
@@ -155,8 +167,11 @@ resource "azurerm_cosmosdb_sql_container" "entities" {
     paths = ["/entityId"]
   }
 
-  autoscale_settings {
-    max_throughput = var.max_throughput
+  dynamic "autoscale_settings" {
+    for_each = contains([for c in var.capabilities : c], "EnableServerless") ? [] : [1]
+    content {
+      max_throughput = var.max_throughput
+    }
   }
 }
 
@@ -167,8 +182,11 @@ resource "azurerm_cosmosdb_sql_container" "analytics" {
   database_name       = azurerm_cosmosdb_sql_database.main.name
   partition_key_paths = ["/tenantId"]
 
-  autoscale_settings {
-    max_throughput = var.max_throughput
+  dynamic "autoscale_settings" {
+    for_each = contains([for c in var.capabilities : c], "EnableServerless") ? [] : [1]
+    content {
+      max_throughput = var.max_throughput
+    }
   }
 }
 

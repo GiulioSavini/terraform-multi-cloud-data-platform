@@ -55,7 +55,6 @@ variable "database_name" {
 variable "master_username" {
   description = "Master username for the database"
   type        = string
-  default     = "dbadmin"
   sensitive   = true
 }
 

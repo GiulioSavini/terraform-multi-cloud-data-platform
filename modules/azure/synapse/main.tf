@@ -44,17 +44,6 @@ resource "azurerm_synapse_workspace" "main" {
 }
 
 # -----------------------------------------------------------------------------
-# Firewall Rules
-# -----------------------------------------------------------------------------
-
-resource "azurerm_synapse_firewall_rule" "allow_azure" {
-  name                 = "AllowAllWindowsAzureIps"
-  synapse_workspace_id = azurerm_synapse_workspace.main.id
-  start_ip_address     = "0.0.0.0"
-  end_ip_address       = "0.0.0.0"
-}
-
-# -----------------------------------------------------------------------------
 # Dedicated SQL Pool
 # -----------------------------------------------------------------------------
 

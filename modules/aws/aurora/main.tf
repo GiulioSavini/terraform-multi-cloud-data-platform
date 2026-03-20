@@ -178,13 +178,13 @@ resource "aws_rds_cluster" "main" {
 resource "aws_rds_cluster_instance" "instances" {
   count = var.instance_count
 
-  identifier           = "${local.name_prefix}-aurora-${count.index + 1}"
-  cluster_identifier   = aws_rds_cluster.main.id
-  instance_class       = var.instance_class
-  engine               = aws_rds_cluster.main.engine
-  engine_version       = aws_rds_cluster.main.engine_version
+  identifier              = "${local.name_prefix}-aurora-${count.index + 1}"
+  cluster_identifier      = aws_rds_cluster.main.id
+  instance_class          = var.instance_class
+  engine                  = aws_rds_cluster.main.engine
+  engine_version          = aws_rds_cluster.main.engine_version
   db_parameter_group_name = aws_db_parameter_group.aurora.name
-  publicly_accessible  = false
+  publicly_accessible     = false
 
   performance_insights_enabled    = true
   performance_insights_kms_key_id = aws_kms_key.aurora.arn

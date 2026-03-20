@@ -68,13 +68,15 @@ RUN curl -sL "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-
 # Install pre-commit
 RUN pip3 install --no-cache-dir --break-system-packages pre-commit
 
-# Set working directory
-WORKDIR /workspace
-
 # Shell configuration
 RUN echo 'alias tf="terraform"' >> /root/.bashrc && \
     echo 'alias tg="terragrunt"' >> /root/.bashrc && \
     echo 'alias ll="ls -la"' >> /root/.bashrc && \
     echo 'export PS1="\[\033[1;36m\]data-platform\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]$ "' >> /root/.bashrc
+
+# Run as non-root user
+RUN addgroup -S terraform && adduser -S terraform -G terraform
+USER terraform
+WORKDIR /workspace
 
 ENTRYPOINT ["/bin/bash"]

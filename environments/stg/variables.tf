@@ -81,6 +81,12 @@ variable "aurora_engine_version" {
   default     = "15.4"
 }
 
+variable "aurora_master_username" {
+  description = "Master username for the Aurora PostgreSQL cluster"
+  type        = string
+  sensitive   = true
+}
+
 variable "redshift_node_type" {
   description = "Redshift node type"
   type        = string
