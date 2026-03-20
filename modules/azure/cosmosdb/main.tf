@@ -52,9 +52,9 @@ resource "azurerm_cosmosdb_account" "main" {
     }
   }
 
-  is_virtual_network_filter_enabled = true
-  public_network_access_enabled     = false
-  local_authentication_disabled     = true
+  is_virtual_network_filter_enabled  = true
+  public_network_access_enabled      = false
+  local_authentication_disabled      = true
   access_key_metadata_writes_enabled = false
 
   virtual_network_rule {
@@ -71,8 +71,11 @@ resource "azurerm_cosmosdb_account" "main" {
     }
   }
 
-  capabilities {
-    name = "EnableServerless"
+  dynamic "capabilities" {
+    for_each = var.capabilities
+    content {
+      name = capabilities.value
+    }
   }
 
   tags = merge(var.tags, {
