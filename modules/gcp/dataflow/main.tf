@@ -29,16 +29,23 @@ resource "google_project_iam_member" "dataflow_bq" {
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
-resource "google_project_iam_member" "dataflow_storage" {
-  project = google_service_account.dataflow.project
-  role    = "roles/storage.objectAdmin"
-  member  = "serviceAccount:${google_service_account.dataflow.email}"
-}
-
 resource "google_project_iam_member" "dataflow_pubsub" {
   project = google_service_account.dataflow.project
   role    = "roles/pubsub.subscriber"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+# Storage access scoped to temp and staging buckets only
+resource "google_storage_bucket_iam_member" "dataflow_temp_storage" {
+  bucket = google_storage_bucket.temp.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_storage_bucket_iam_member" "dataflow_staging_storage" {
+  bucket = google_storage_bucket.staging.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
 # -----------------------------------------------------------------------------

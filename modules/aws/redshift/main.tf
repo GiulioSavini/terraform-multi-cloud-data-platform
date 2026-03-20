@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
+  name_prefix  = "${var.project_name}-${var.environment}"
   cluster_type = var.number_of_nodes > 1 ? "multi-node" : "single-node"
 }
 
@@ -154,11 +154,6 @@ resource "aws_iam_role_policy" "redshift_s3" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "redshift_s3_read" {
-  role       = aws_iam_role.redshift.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-}
-
 # -----------------------------------------------------------------------------
 # Logging Bucket
 # -----------------------------------------------------------------------------
@@ -244,14 +239,14 @@ resource "aws_redshift_cluster" "main" {
   master_username    = var.master_username
   master_password    = random_password.master.result
 
-  node_type         = var.node_type
-  number_of_nodes   = var.number_of_nodes
-  cluster_type      = local.cluster_type
+  node_type       = var.node_type
+  number_of_nodes = var.number_of_nodes
+  cluster_type    = local.cluster_type
 
-  cluster_subnet_group_name  = aws_redshift_subnet_group.main.name
+  cluster_subnet_group_name    = aws_redshift_subnet_group.main.name
   cluster_parameter_group_name = aws_redshift_parameter_group.main.name
-  vpc_security_group_ids     = var.security_group_ids
-  iam_roles                  = [aws_iam_role.redshift.arn]
+  vpc_security_group_ids       = var.security_group_ids
+  iam_roles                    = [aws_iam_role.redshift.arn]
 
   encrypted  = true
   kms_key_id = aws_kms_key.redshift.arn
