@@ -20,21 +20,6 @@ resource "google_bigquery_dataset" "analytics" {
   default_table_expiration_ms = var.default_expiration_ms > 0 ? var.default_expiration_ms : null
 
   labels = var.labels
-
-  access {
-    role          = "OWNER"
-    special_group = "projectOwners"
-  }
-
-  access {
-    role          = "READER"
-    special_group = "projectReaders"
-  }
-
-  access {
-    role          = "WRITER"
-    special_group = "projectWriters"
-  }
 }
 
 resource "google_bigquery_dataset" "raw" {
@@ -43,16 +28,6 @@ resource "google_bigquery_dataset" "raw" {
   description = "Raw ingestion dataset for ${var.environment}"
 
   labels = var.labels
-
-  access {
-    role          = "OWNER"
-    special_group = "projectOwners"
-  }
-
-  access {
-    role          = "WRITER"
-    special_group = "projectWriters"
-  }
 }
 
 # -----------------------------------------------------------------------------

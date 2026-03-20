@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Run Trivy (IaC scan)
         uses: aquasecurity/trivy-action@0.28.0
@@ -79,7 +79,7 @@ jobs:
             || true
 
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: trivy-results.sarif
@@ -87,7 +87,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Checkov SARIF
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         if: always() && hashFiles('results.sarif') != ''
         with:
           sarif_file: results.sarif
@@ -102,7 +102,7 @@ jobs:
     environment: dev
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -146,9 +146,11 @@ jobs:
       - name: Comment PR with Plan
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        env:
+          PLAN_OUTPUT: ${{ steps.plan.outputs.plan_output }}
         with:
           script: |
-            const plan = `${{ steps.plan.outputs.plan_output }}`.substring(0, 65000);
+            const plan = process.env.PLAN_OUTPUT.substring(0, 65000);
             const body = `### Terraform Plan (Dev) ${{ steps.plan.outcome == 'success' && '✅' || '❌' }}
 
             <details><summary>Show Plan</summary>
@@ -180,7 +182,7 @@ jobs:
     environment: prd
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -224,7 +226,7 @@ jobs:
       url: https://console.aws.amazon.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -268,7 +270,7 @@ jobs:
       url: https://console.aws.amazon.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

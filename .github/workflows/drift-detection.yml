@@ -176,6 +176,7 @@ jobs:
             }
 
       - name: Notify Slack on Drift
+        # Note: SHA pinning is recommended for production use instead of version tags
         if: steps.filter.outputs.skip != 'true' && steps.plan.outputs.drift == 'true'
         uses: slackapi/slack-github-action@v1.27.0
         with:
