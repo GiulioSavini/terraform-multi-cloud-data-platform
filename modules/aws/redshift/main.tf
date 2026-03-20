@@ -154,11 +154,6 @@ resource "aws_iam_role_policy" "redshift_s3" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "redshift_s3_read" {
-  role       = aws_iam_role.redshift.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-}
-
 # -----------------------------------------------------------------------------
 # Logging Bucket
 # -----------------------------------------------------------------------------
