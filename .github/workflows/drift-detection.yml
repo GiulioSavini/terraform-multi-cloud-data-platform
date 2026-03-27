@@ -26,6 +26,7 @@ permissions:
 
 jobs:
   drift-check:
+    if: vars.CLOUD_CREDENTIALS_CONFIGURED == 'true'
     name: Drift Check (${{ matrix.environment }})
     runs-on: ubuntu-latest
     strategy:
