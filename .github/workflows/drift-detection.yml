@@ -52,18 +52,18 @@ jobs:
 
       - name: Checkout
         if: steps.filter.outputs.skip != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure AWS Credentials
         if: steps.filter.outputs.skip != 'true'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets[format('AWS_ROLE_ARN_{0}', matrix.environment)] }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Azure Login
         if: steps.filter.outputs.skip != 'true'
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets[format('AZURE_CLIENT_ID_{0}', matrix.environment)] }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -71,26 +71,26 @@ jobs:
 
       - name: GCP Auth
         if: steps.filter.outputs.skip != 'true'
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ secrets[format('GCP_WIF_PROVIDER_{0}', matrix.environment)] }}
           service_account: ${{ secrets[format('GCP_SA_EMAIL_{0}', matrix.environment)] }}
 
       - name: Setup Terraform
         if: steps.filter.outputs.skip != 'true'
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Init
         if: steps.filter.outputs.skip != 'true'
-        working-directory: environments/${{ matrix.environment }}
+        working-directory: deployments/${{ matrix.environment }}
         run: terraform init -input=false
 
       - name: Terraform Plan (Drift Detection)
         if: steps.filter.outputs.skip != 'true'
         id: plan
-        working-directory: environments/${{ matrix.environment }}
+        working-directory: deployments/${{ matrix.environment }}
         run: |
           set +e
           terraform plan -input=false -detailed-exitcode -var-file=terraform.tfvars \
@@ -111,17 +111,17 @@ jobs:
 
       - name: Show Drift Details
         if: steps.filter.outputs.skip != 'true' && steps.plan.outputs.drift == 'true'
-        working-directory: environments/${{ matrix.environment }}
+        working-directory: deployments/${{ matrix.environment }}
         run: terraform show -no-color tfplan
 
       - name: Create Issue on Drift
         if: steps.filter.outputs.skip != 'true' && steps.plan.outputs.drift == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
             const planOutput = fs.readFileSync(
-              'environments/${{ matrix.environment }}/plan_output.txt', 'utf8'
+              'deployments/${{ matrix.environment }}/plan_output.txt', 'utf8'
             ).substring(0, 60000);
 
             const title = `[Drift] Configuration drift detected in ${{ matrix.environment }}`;
@@ -176,42 +176,3 @@ jobs:
               });
             }
 
-      - name: Notify Slack on Drift
-        # Note: SHA pinning is recommended for production use instead of version tags
-        if: steps.filter.outputs.skip != 'true' && steps.plan.outputs.drift == 'true'
-        uses: slackapi/slack-github-action@v1.27.0
-        with:
-          payload: |
-            {
-              "text": "Infrastructure drift detected in *${{ matrix.environment }}*",
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "Infrastructure Drift Alert"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {"type": "mrkdwn", "text": "*Environment:*\n${{ matrix.environment }}"},
-                    {"type": "mrkdwn", "text": "*Status:*\n${{ steps.plan.outputs.status }}"}
-                  ]
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "text": {"type": "plain_text", "text": "View Run"},
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-        continue-on-error: true

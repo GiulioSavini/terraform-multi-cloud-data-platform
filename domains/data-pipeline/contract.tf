@@ -57,6 +57,7 @@ module "aws" {
   data_lake_kms_key_arn = var.lake_encryption_keys["aws"]
   subnet_id             = var.networks["aws"].private_subnets[0]
   security_group_ids    = var.aws_security_group_ids
+  tags                  = var.tags
 
   depends_on = [terraform_data.guards]
 }
@@ -73,6 +74,7 @@ module "azure" {
   storage_account_url = var.azure_storage.dfs_endpoint
   cosmosdb_endpoint   = try(var.operational_endpoints["azure"].writer, "")
   synapse_endpoint    = try(var.warehouse_endpoints, "")
+  tags                = var.tags
 
   depends_on = [terraform_data.guards]
 }
@@ -85,6 +87,7 @@ module "gcp" {
   environment  = var.environment
   network      = var.gcp_network.self_link
   subnetwork   = var.gcp_network.dataflow_subnet
+  labels       = var.labels
 
   depends_on = [terraform_data.guards]
 }

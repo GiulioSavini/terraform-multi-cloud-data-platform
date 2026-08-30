@@ -31,6 +31,7 @@ module "aws" {
 
   project_name = var.landing_zone
   environment  = var.environment
+  tags         = var.tags
 
   depends_on = [terraform_data.guards]
 }
@@ -44,6 +45,7 @@ module "azure" {
   location            = var.placement.azure.location
   resource_group_name = var.placement.azure.resource_group_name
   subnet_id           = var.placement.azure.subnet_id
+  tags                = var.tags
 
   depends_on = [terraform_data.guards]
 }
@@ -54,6 +56,7 @@ module "gcp" {
 
   project_name = var.landing_zone
   environment  = var.environment
+  labels       = var.labels
 
   depends_on = [terraform_data.guards]
 }

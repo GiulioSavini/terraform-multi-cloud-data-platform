@@ -39,6 +39,13 @@ resource "google_sql_database_instance" "main" {
       ipv4_enabled                                  = false
       private_network                               = var.network_id
       enable_private_path_for_google_cloud_services = true
+
+      # Without this the instance accepts unencrypted connections even on the
+      # private path. ENCRYPTED_ONLY enforces TLS;
+      # TRUSTED_CLIENT_CERTIFICATE_REQUIRED would additionally require client
+      # certificates, which needs a distribution mechanism this platform does
+      # not provide.
+      ssl_mode = "ENCRYPTED_ONLY"
     }
 
     backup_configuration {

@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # The workflow pins every action to a released tag; this keeps those pins
+  # current instead of letting them rot behind a moving major.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci

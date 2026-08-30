@@ -23,6 +23,11 @@ variable "tags" {
   type        = map(string)
 }
 
+variable "labels" {
+  description = "Same tag set normalised to GCP label constraints, from platform/tagging."
+  type        = map(string)
+}
+
 variable "placement" {
   description = "Provider-specific placement."
   type = object({

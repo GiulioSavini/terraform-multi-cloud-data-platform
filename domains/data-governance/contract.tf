@@ -28,6 +28,7 @@ module "cross_cloud" {
   azure_resource_group_name = var.placement.azure.resource_group_name
   gcp_region                = var.placement.gcp.region
   gcp_project_id            = var.placement.gcp.project_id
+  tags                      = var.tags
 
   depends_on = [terraform_data.guards]
 }

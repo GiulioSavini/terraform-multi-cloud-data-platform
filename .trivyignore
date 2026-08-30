@@ -1,5 +1,17 @@
 # Suppressions must name the control and the reason. An entry without a reason
-# is a finding someone hid, and review should treat it as one.
-#
-# There are none at present. If one is added here, it needs a sentence saying
-# why the finding does not apply, not just an ID.
+# is a finding someone hid, and review should treat it as one. Everything not
+# listed here fails the build.
+
+# AVD-AWS-0104 — the data plane needs outbound internet for managed-service
+# endpoints, package installation on the pipeline workers and object-store
+# replication, and reaches it through the NAT gateway. Egress is already
+# restricted by port; the destination cannot be narrowed further without pinning
+# service addresses that AWS does not publish as stable ranges.
+AVD-AWS-0104
+
+# AVD-AWS-0132 — buckets are encrypted with SSE-KMS under the AWS-managed key.
+# A customer-managed key is the stricter option, but it needs a key policy
+# granting the service principals that write these objects, which has to be
+# validated against a live account before it ships. Tracked, not dismissed: the
+# data is encrypted, just not under our own key.
+AVD-AWS-0132

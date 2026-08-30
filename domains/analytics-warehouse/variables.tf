@@ -51,3 +51,8 @@ variable "tags" {
   description = "Tag set from platform/tagging."
   type        = map(string)
 }
+
+variable "labels" {
+  description = "Same tag set normalised to GCP label constraints, from platform/tagging."
+  type        = map(string)
+}

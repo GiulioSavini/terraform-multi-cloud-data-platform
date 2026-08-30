@@ -43,6 +43,7 @@ module "aws" {
   subnet_ids         = var.networks["aws"].private_subnets
   security_group_ids = var.aws_security_group_ids
   master_username    = var.master_username
+  tags               = var.tags
 
   depends_on = [terraform_data.guards]
 }
@@ -57,6 +58,7 @@ module "azure" {
   resource_group_name = var.placement.azure.resource_group_name
   subnet_id           = var.placement.azure.subnet_id
   capabilities        = var.cosmos_capabilities
+  tags                = var.tags
 
   depends_on = [terraform_data.guards]
 }

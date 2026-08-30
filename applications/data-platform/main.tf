@@ -75,7 +75,8 @@ module "data_lake" {
     } : null
   }
 
-  tags = module.tags["data-lake"].tags
+  tags   = module.tags["data-lake"].tags
+  labels = module.tags["data-lake"].labels
 }
 
 module "operational_store" {
@@ -116,7 +117,8 @@ module "analytics_warehouse" {
   aws_security_group_ids = [module.networking.aws_security_groups.analytics_warehouse]
   placement              = { azure = local.azure_placement }
 
-  tags = module.tags["analytics-warehouse"].tags
+  tags   = module.tags["analytics-warehouse"].tags
+  labels = module.tags["analytics-warehouse"].labels
 }
 
 module "stream_ingestion" {
@@ -133,7 +135,8 @@ module "stream_ingestion" {
 
   enable_cross_cloud_replication = var.enable_cross_cloud_replication
 
-  tags = module.tags["stream-ingestion"].tags
+  tags   = module.tags["stream-ingestion"].tags
+  labels = module.tags["stream-ingestion"].labels
 }
 
 module "data_pipeline" {
@@ -155,7 +158,8 @@ module "data_pipeline" {
   gcp_network            = local.gcp_enabled ? module.networking.gcp_network : null
   placement              = { azure = local.azure_placement }
 
-  tags = module.tags["data-pipeline"].tags
+  tags   = module.tags["data-pipeline"].tags
+  labels = module.tags["data-pipeline"].labels
 }
 
 module "data_governance" {

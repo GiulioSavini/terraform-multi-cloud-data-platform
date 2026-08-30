@@ -55,7 +55,7 @@ case $ENV in
     ;;
 esac
 
-TFVARS_FILE="environments/$ENV/terraform.tfvars"
+TFVARS_FILE="deployments/$ENV/terraform.tfvars"
 
 cat > "$TFVARS_FILE" << EOF
 # Auto-generated on $(date -Iseconds)
@@ -87,4 +87,4 @@ EOF
 
 echo -e "\n${GREEN}Generated: $TFVARS_FILE${NC}"
 echo -e "Review and update ${YELLOW}CHANGE_ME${NC} values, especially synapse_password."
-echo "Next: cd environments/$ENV && terraform init && terraform plan"
+echo "Next: cd deployments/$ENV && terraform init && terraform plan"

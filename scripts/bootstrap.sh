@@ -28,7 +28,7 @@ bash "$SCRIPT_DIR/setup-backend.sh" "$ENV"
 echo -e "\n🔍 Step 4/4: Auto-discovering variables..."
 bash "$SCRIPT_DIR/get-variables.sh" "$ENV"
 
-cd "environments/$ENV" && terraform init -upgrade
+cd "deployments/$ENV" && terraform init -upgrade
 
 echo -e "\n╔══════════════════════════════════════════════╗"
 echo "║   Bootstrap complete!                        ║"

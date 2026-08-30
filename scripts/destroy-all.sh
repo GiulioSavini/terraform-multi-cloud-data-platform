@@ -39,7 +39,7 @@ echo ""
 echo -e "${YELLOW}Starting destruction of $ENV environment...${NC}"
 echo ""
 
-cd "environments/$ENV"
+cd "deployments/$ENV"
 
 # Show what will be destroyed
 echo "--- Resources to be destroyed ---"

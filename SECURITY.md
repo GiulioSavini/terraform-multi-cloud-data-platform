@@ -73,5 +73,5 @@ When using this project, follow these security best practices:
 
 - Pin provider versions to avoid unexpected changes.
 - Review `terraform plan` output before applying changes.
-- Use `checkov` or `tfsec` for static analysis of Terraform configurations.
+- Run `trivy config` and the Conftest policies in `compliance/policies` for static analysis of the Terraform configurations.
 - Implement policy-as-code with Sentinel or OPA.

@@ -5,98 +5,95 @@ on:
     branches: [main]
   pull_request:
 
-# Every job here can fail the build. An earlier version of this workflow ran the
-# security scan with exit-code 0 and made the plan jobs non-blocking; a pipeline
-# that is green regardless of its findings provides no signal. If a check is too
-# noisy, fix the finding or delete the check — never neutralise it.
+# Three jobs, each able to fail the build.
+#
+# There is no continue-on-error, no `|| true` and no exit-code override in this
+# file, and none should be added: a check that cannot fail the build reports
+# green regardless of what it finds, which is worse than not running it at all.
+# If a check becomes too noisy, fix the finding or delete the check.
 
 env:
   TF_VERSION: "1.9.8"
+  TFLINT_VERSION: "v0.64.0"
+  CONFTEST_VERSION: "0.69.0"
 
 jobs:
-  fmt:
-    name: Format
+  terraform:
+    name: Terraform
     runs-on: ubuntu-latest
+    env:
+      # Every root and adapter is initialised separately; without a shared
+      # plugin cache each one would re-download the same providers.
+      TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.tfcache
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: terraform fmt -check -recursive -diff
+      - uses: actions/checkout@v7
 
-  validate:
-    name: Validate ${{ matrix.dir }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        dir:
-          - platform/naming
-          - platform/tagging
-          - compliance/controls
-          - domains/networking
-          - domains/data-lake
-          - domains/operational-store
-          - domains/analytics-warehouse
-          - domains/stream-ingestion
-          - domains/data-pipeline
-          - domains/data-governance
-          - applications/data-platform
-          - deployments/dev
-          - deployments/stg
-          - deployments/prd
-    steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
-      - name: Init and validate
-        working-directory: ${{ matrix.dir }}
+          terraform_wrapper: false
+
+      - name: Format
+        run: terraform fmt -check -recursive -diff
+
+      - name: Init and validate every module
         run: |
-          terraform init -backend=false -input=false
-          terraform validate
+          set -euo pipefail
+          mkdir -p "$TF_PLUGIN_CACHE_DIR"
+          status=0
+          while read -r dir; do
+            echo "::group::$dir"
+            terraform -chdir="$dir" init -backend=false -input=false >/dev/null || status=1
+            terraform -chdir="$dir" validate || status=1
+            echo "::endgroup::"
+          done < <(find . -name versions.tf -not -path './.git/*' -printf '%h\n' | sort)
+          exit $status
 
-  boundaries:
-    name: Bounded context boundaries
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: ./scripts/check-boundaries.sh
+      - name: Bounded context boundaries
+        run: ./scripts/check-boundaries.sh
 
-  provider-pins:
-    name: Provider pins agree
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: One constraint per provider across the repository
+      - name: Provider pins agree
         run: ./scripts/check-provider-pins.sh
 
-  policy:
-    name: Policy unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: open-policy-agent/setup-conftest@v0.4.0
-      - run: conftest verify --policy compliance/policies
+      - uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: ${{ env.TFLINT_VERSION }}
+          cache: true
 
-  lint:
-    name: tflint
+      - name: tflint
+        run: |
+          tflint --init
+          tflint --recursive --minimum-failure-severity=warning
+
+  policy:
+    name: Compliance policy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: terraform-linters/setup-tflint@v4
-      - run: tflint --init
-      - run: tflint --recursive --minimum-failure-severity=warning
+      - uses: actions/checkout@v7
+
+      - name: Install conftest
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin conftest
+          conftest --version
+
+      - name: Policy unit tests
+        run: conftest verify --policy compliance/policies
 
   security:
-    name: Trivy config scan
+    name: Security
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: actions/checkout@v7
+
+      - name: Scan Terraform for misconfiguration
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: .
+          # Findings fail the build. Suppressions belong in .trivyignore with a
+          # written reason next to them, not in the exit code.
           exit-code: "1"
           severity: CRITICAL,HIGH
           trivyignores: .trivyignore

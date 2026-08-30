@@ -24,12 +24,7 @@ repos:
           - --hook-config=--create-file-if-not-exist=true
       - id: terraform_tflint
         args:
-          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
-      - id: terraform_tfsec
-        args:
-          - --args=--minimum-severity=MEDIUM
-      - id: terraform_checkov
-        args:
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl        args:
           - --args=--quiet
           - --args=--compact
           - --args=--skip-check CKV_AWS_144,CKV_AWS_145

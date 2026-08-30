@@ -15,9 +15,6 @@ override.tf.json
 *.tfplan
 *.tfplan.binary
 
-# Terragrunt
-.terragrunt-cache/
-
 # IDE
 .idea/
 .vscode/

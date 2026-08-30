@@ -43,6 +43,7 @@ module "aws" {
   subnet_ids         = var.networks["aws"].private_subnets
   security_group_ids = var.aws_security_group_ids
   s3_data_lake_arn   = var.lake_zone_arns.analytics
+  tags               = var.tags
 
   depends_on = [terraform_data.guards]
 }
@@ -57,6 +58,7 @@ module "azure" {
   resource_group_name = var.placement.azure.resource_group_name
   storage_account_id  = var.azure_storage.account_id
   filesystem_id       = var.azure_storage.filesystem_id
+  tags                = var.tags
 
   depends_on = [terraform_data.guards]
 }
@@ -67,6 +69,7 @@ module "gcp" {
 
   project_name = var.landing_zone
   environment  = var.environment
+  labels       = var.labels
 
   depends_on = [terraform_data.guards]
 }

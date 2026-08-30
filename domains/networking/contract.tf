@@ -45,6 +45,7 @@ module "aws" {
   vpc_cidr             = var.address_space.aws
   private_subnet_cidrs = local.aws_private_cidrs
   aws_region           = var.placement.aws.region
+  tags                 = var.tags
 
   depends_on = [terraform_data.guards]
 }
@@ -56,6 +57,7 @@ module "azure" {
   project_name = var.landing_zone
   environment  = var.environment
   location     = var.placement.azure.location
+  tags         = var.tags
 
   depends_on = [terraform_data.guards]
 }

@@ -36,7 +36,7 @@ Paste the full error output here.
   - Azure: [e.g., 3.80.0]
   - GCP: [e.g., 5.10.0]
 - **OS**: [e.g., Ubuntu 22.04]
-- **Module**: [e.g., modules/aws/aurora]
+- **Context**: [e.g., domains/operational-store]
 
 ## Terraform Plan/Apply Output
 
