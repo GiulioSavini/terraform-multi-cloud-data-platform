@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Every job here can fail the build. An earlier version of this workflow ran the
+# security scan with exit-code 0 and made the plan jobs non-blocking; a pipeline
+# that is green regardless of its findings provides no signal. If a check is too
+# noisy, fix the finding or delete the check — never neutralise it.
+
+env:
+  TF_VERSION: "1.9.8"
+
+jobs:
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - run: terraform fmt -check -recursive -diff
+
+  validate:
+    name: Validate ${{ matrix.dir }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir:
+          - platform/naming
+          - platform/tagging
+          - compliance/controls
+          - domains/networking
+          - domains/data-lake
+          - domains/operational-store
+          - domains/analytics-warehouse
+          - domains/stream-ingestion
+          - domains/data-pipeline
+          - domains/data-governance
+          - applications/data-platform
+          - deployments/dev
+          - deployments/stg
+          - deployments/prd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - name: Init and validate
+        working-directory: ${{ matrix.dir }}
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+
+  boundaries:
+    name: Bounded context boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/check-boundaries.sh
+
+  provider-pins:
+    name: Provider pins agree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: One constraint per provider across the repository
+        run: ./scripts/check-provider-pins.sh
+
+  policy:
+    name: Policy unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: open-policy-agent/setup-conftest@v0.4.0
+      - run: conftest verify --policy compliance/policies
+
+  lint:
+    name: tflint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+      - run: tflint --init
+      - run: tflint --recursive --minimum-failure-severity=warning
+
+  security:
+    name: Trivy config scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          exit-code: "1"
+          severity: CRITICAL,HIGH
+          trivyignores: .trivyignore

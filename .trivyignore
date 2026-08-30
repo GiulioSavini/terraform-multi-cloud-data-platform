@@ -1,0 +1,5 @@
+# Suppressions must name the control and the reason. An entry without a reason
+# is a finding someone hid, and review should treat it as one.
+#
+# There are none at present. If one is added here, it needs a sentence saying
+# why the finding does not apply, not just an ID.
