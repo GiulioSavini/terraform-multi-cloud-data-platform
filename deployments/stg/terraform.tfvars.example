@@ -1,0 +1,12 @@
+owner               = "data-platform-team"
+cost_center         = "CC-3000"
+data_classification = "confidential"
+
+aws_region = "eu-west-1"
+
+azure_subscription_id = ""
+gcp_project_id        = ""
+gcp_region            = "europe-west1"
+
+# Not "admin", "root" or "postgres" — the context rejects well-known defaults.
+master_username = "dbadmin"

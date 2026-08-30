@@ -1,114 +1,55 @@
-.PHONY: help init plan apply destroy fmt validate lint security test clean docker-build docker-run
-
-SHELL := /bin/bash
 ENV ?= dev
-AWS_REGION ?= eu-west-1
-AZURE_REGION ?= westeurope
-GCP_REGION ?= europe-west1
-TF_DIR := environments/$(ENV)
-DOCKER_IMAGE := terraform-data-platform
-DOCKER_TAG := latest
+DEPLOY := deployments/$(ENV)
+POLICY := compliance/policies
 
-# Colors
-GREEN  := \033[0;32m
-YELLOW := \033[0;33m
-RED    := \033[0;31m
-NC     := \033[0m
+.PHONY: help init plan apply destroy fmt validate lint policy policy-plan security check
 
-help: ## Show this help message / Mostra questo messaggio di aiuto
-	@echo -e "$(GREEN)Terraform Multi-Cloud Data Platform$(NC)"
-	@echo ""
-	@echo "Usage: make <target> [ENV=dev|stg|prd]"
-	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-20s$(NC) %s\n", $$1, $$2}'
+help:
+	@echo "make init|plan|apply|destroy ENV=dev|stg|prd"
+	@echo "make check    -- everything CI runs, locally"
 
-init: ## Initialize Terraform for the specified environment
-	@echo -e "$(GREEN)Initializing Terraform for $(ENV)...$(NC)"
-	cd $(TF_DIR) && terraform init -upgrade
+init:
+	cd $(DEPLOY) && terraform init -upgrade
 
-plan: ## Generate and show an execution plan
-	@echo -e "$(GREEN)Planning Terraform for $(ENV)...$(NC)"
-	cd $(TF_DIR) && terraform plan -var-file=terraform.tfvars -out=tfplan
+plan:
+	cd $(DEPLOY) && terraform plan -var-file=terraform.tfvars -out=tfplan
 
-apply: ## Apply the planned changes
-	@echo -e "$(GREEN)Applying Terraform for $(ENV)...$(NC)"
-	cd $(TF_DIR) && terraform apply tfplan
+apply:
+	cd $(DEPLOY) && terraform apply tfplan
 
-apply-auto: ## Apply changes with auto-approve (use with caution)
-	@echo -e "$(RED)Auto-applying Terraform for $(ENV)...$(NC)"
-	cd $(TF_DIR) && terraform apply -var-file=terraform.tfvars -auto-approve
+destroy:
+	cd $(DEPLOY) && terraform destroy -var-file=terraform.tfvars
 
-destroy: ## Destroy all resources (DANGEROUS)
-	@echo -e "$(RED)Destroying Terraform resources for $(ENV)...$(NC)"
-	@read -p "Are you sure? Type 'yes' to confirm: " confirm && [ "$$confirm" = "yes" ] || exit 1
-	cd $(TF_DIR) && terraform destroy -var-file=terraform.tfvars -auto-approve
-
-fmt: ## Format Terraform files recursively
-	@echo -e "$(GREEN)Formatting Terraform files...$(NC)"
+fmt:
 	terraform fmt -recursive
 
-validate: ## Validate Terraform configuration
-	@echo -e "$(GREEN)Validating Terraform for $(ENV)...$(NC)"
-	cd $(TF_DIR) && terraform validate
+ROOTS := platform/naming platform/tagging compliance/controls \
+         domains/networking domains/data-lake domains/operational-store \
+         domains/analytics-warehouse domains/stream-ingestion \
+         domains/data-pipeline domains/data-governance \
+         applications/data-platform \
+         deployments/dev deployments/stg deployments/prd
 
-lint: ## Run tflint on all modules
-	@echo -e "$(GREEN)Running tflint...$(NC)"
-	@find . -name "*.tf" -exec dirname {} \; | sort -u | while read dir; do \
-		echo "Linting $$dir"; \
-		tflint --chdir=$$dir || true; \
+validate:
+	@set -e; for d in $(ROOTS); do \
+		echo "==> $$d"; \
+		( cd $$d && terraform init -backend=false -input=false >/dev/null && terraform validate ); \
 	done
 
-security: ## Run security scans (tfsec + checkov)
-	@echo -e "$(GREEN)Running tfsec...$(NC)"
-	tfsec . --minimum-severity MEDIUM
-	@echo -e "$(GREEN)Running checkov...$(NC)"
-	checkov -d . --quiet --compact
+lint:
+	tflint --recursive --minimum-failure-severity=warning
 
-test: ## Run all checks (fmt, validate, lint, security)
-	@$(MAKE) fmt
-	@$(MAKE) validate
-	@$(MAKE) lint
-	@$(MAKE) security
+policy:
+	conftest verify --policy $(POLICY)
 
-clean: ## Remove Terraform cache and plan files
-	@echo -e "$(YELLOW)Cleaning Terraform cache...$(NC)"
-	find . -type d -name ".terraform" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.tfplan" -delete 2>/dev/null || true
-	find . -type f -name ".terraform.lock.hcl" -delete 2>/dev/null || true
-	find . -type d -name ".terragrunt-cache" -exec rm -rf {} + 2>/dev/null || true
+policy-plan:
+	cd $(DEPLOY) && terraform show -json tfplan > tfplan.json
+	conftest test --policy $(POLICY) $(DEPLOY)/tfplan.json
 
-output: ## Show Terraform outputs for the specified environment
-	@echo -e "$(GREEN)Outputs for $(ENV):$(NC)"
-	cd $(TF_DIR) && terraform output
+security:
+	trivy config --exit-code 1 --severity CRITICAL,HIGH --ignorefile .trivyignore .
 
-state-list: ## List resources in Terraform state
-	cd $(TF_DIR) && terraform state list
-
-console: ## Open Terraform console
-	cd $(TF_DIR) && terraform console
-
-graph: ## Generate resource dependency graph
-	cd $(TF_DIR) && terraform graph | dot -Tpng > graph.png
-	@echo "Graph saved to $(TF_DIR)/graph.png"
-
-docker-build: ## Build the Docker workspace image
-	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
-
-docker-run: ## Run the Docker workspace
-	docker run -it --rm \
-		-v $(PWD):/workspace \
-		-v ~/.aws:/root/.aws:ro \
-		-v ~/.azure:/root/.azure:ro \
-		-v ~/.config/gcloud:/root/.config/gcloud:ro \
-		-w /workspace \
-		$(DOCKER_IMAGE):$(DOCKER_TAG) bash
-
-terragrunt-init: ## Initialize with Terragrunt
-	cd $(TF_DIR) && terragrunt init
-
-terragrunt-plan: ## Plan with Terragrunt
-	cd $(TF_DIR) && terragrunt plan
-
-terragrunt-apply: ## Apply with Terragrunt
-	cd $(TF_DIR) && terragrunt apply
+check: fmt validate policy
+	terraform fmt -check -recursive
+	./scripts/check-boundaries.sh
+	./scripts/check-provider-pins.sh

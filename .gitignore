@@ -49,3 +49,11 @@ logs/
 # Build
 dist/
 build/
+
+# Local plan artifacts used by `make policy-plan`
+*.tfplan
+tfplan.json
+
+# Local planning artifacts, never published
+.planning/
+.claude/
