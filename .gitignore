@@ -54,6 +54,3 @@ build/
 *.tfplan
 tfplan.json
 
-# Local planning artifacts, never published
-.planning/
-.claude/
