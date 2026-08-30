@@ -214,22 +214,22 @@ resource "aws_s3_object" "mirror_maker_config" {
   content = jsonencode({
     name = "${local.name_prefix}-mm2-eventhubs"
     config = {
-      "connector.class"                    = "org.apache.kafka.connect.mirror.MirrorSourceConnector"
-      "source.cluster.alias"               = "msk"
-      "target.cluster.alias"               = "eventhubs"
-      "source.cluster.bootstrap.servers"   = var.msk_bootstrap_brokers
-      "target.cluster.bootstrap.servers"   = "${var.eventhubs_namespace}.servicebus.windows.net:9093"
-      "topics"                             = "events,metrics,commands"
-      "replication.factor"                 = "1"
-      "tasks.max"                          = "3"
-      "key.converter"                      = "org.apache.kafka.connect.converters.ByteArrayConverter"
-      "value.converter"                    = "org.apache.kafka.connect.converters.ByteArrayConverter"
-      "offset.storage.topic"               = "mm2-offsets"
-      "status.storage.topic"               = "mm2-status"
-      "config.storage.topic"               = "mm2-config"
-      "source.cluster.security.protocol"   = "SSL"
-      "target.cluster.security.protocol"   = "SASL_SSL"
-      "target.cluster.sasl.mechanism"      = "PLAIN"
+      "connector.class"                  = "org.apache.kafka.connect.mirror.MirrorSourceConnector"
+      "source.cluster.alias"             = "msk"
+      "target.cluster.alias"             = "eventhubs"
+      "source.cluster.bootstrap.servers" = var.msk_bootstrap_brokers
+      "target.cluster.bootstrap.servers" = "${var.eventhubs_namespace}.servicebus.windows.net:9093"
+      "topics"                           = "events,metrics,commands"
+      "replication.factor"               = "1"
+      "tasks.max"                        = "3"
+      "key.converter"                    = "org.apache.kafka.connect.converters.ByteArrayConverter"
+      "value.converter"                  = "org.apache.kafka.connect.converters.ByteArrayConverter"
+      "offset.storage.topic"             = "mm2-offsets"
+      "status.storage.topic"             = "mm2-status"
+      "config.storage.topic"             = "mm2-config"
+      "source.cluster.security.protocol" = "SSL"
+      "target.cluster.security.protocol" = "SASL_SSL"
+      "target.cluster.sasl.mechanism"    = "PLAIN"
     }
   })
 

@@ -217,7 +217,7 @@ resource "aws_s3_bucket_policy" "redshift_logs" {
       }
       Action   = "s3:PutObject"
       Resource = "${aws_s3_bucket.redshift_logs.arn}/*"
-    }, {
+      }, {
       Sid    = "RedshiftGetBucketAcl"
       Effect = "Allow"
       Principal = {

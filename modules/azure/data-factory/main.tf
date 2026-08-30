@@ -40,15 +40,15 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "adls" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb" "cosmos" {
-  name            = "${local.name_prefix}-ls-cosmos"
-  data_factory_id = azurerm_data_factory.main.id
+  name             = "${local.name_prefix}-ls-cosmos"
+  data_factory_id  = azurerm_data_factory.main.id
   account_endpoint = var.cosmosdb_endpoint
-  database        = "${local.name_prefix}-db"
+  database         = "${local.name_prefix}-db"
 }
 
 resource "azurerm_data_factory_linked_service_synapse" "synapse" {
-  name            = "${local.name_prefix}-ls-synapse"
-  data_factory_id = azurerm_data_factory.main.id
+  name              = "${local.name_prefix}-ls-synapse"
+  data_factory_id   = azurerm_data_factory.main.id
   connection_string = "Integrated Security=False;Data Source=${lookup(var.synapse_endpoint, "sql", "")};Initial Catalog=master"
 }
 
@@ -63,8 +63,8 @@ resource "azurerm_data_factory_pipeline" "ingest" {
 
   activities_json = jsonencode([
     {
-      name = "CopyCosmosToADLS"
-      type = "Copy"
+      name      = "CopyCosmosToADLS"
+      type      = "Copy"
       dependsOn = []
       policy = {
         timeout                = "7.00:00:00"

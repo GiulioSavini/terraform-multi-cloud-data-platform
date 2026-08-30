@@ -107,7 +107,7 @@ resource "google_bigquery_data_transfer_config" "daily_aggregation" {
   destination_dataset_id = google_bigquery_dataset.analytics.dataset_id
 
   params = {
-    query = <<-SQL
+    query                           = <<-SQL
       INSERT INTO `${google_bigquery_dataset.analytics.dataset_id}.aggregated_metrics`
       SELECT
         DATE(event_timestamp) as metric_date,

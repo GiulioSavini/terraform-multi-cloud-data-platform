@@ -288,7 +288,7 @@ resource "aws_glue_job" "raw_to_curated" {
   default_arguments = {
     "--job-language"                     = "python"
     "--job-bookmark-option"              = "job-bookmark-enable"
-    "--enable-continuous-cloudwatch-log"  = "true"
+    "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--enable-spark-ui"                  = "true"
     "--spark-event-logs-path"            = "s3://${aws_s3_bucket.glue_scripts.id}/spark-logs/"

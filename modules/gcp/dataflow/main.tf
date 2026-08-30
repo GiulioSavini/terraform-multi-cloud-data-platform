@@ -112,21 +112,21 @@ resource "random_id" "suffix" {
 # -----------------------------------------------------------------------------
 
 resource "google_storage_bucket_object" "job_metadata" {
-  name    = "templates/dataflow-job-metadata.json"
-  bucket  = google_storage_bucket.staging.name
+  name   = "templates/dataflow-job-metadata.json"
+  bucket = google_storage_bucket.staging.name
   content = jsonencode({
     name        = "${local.name_prefix}-etl-pipeline"
     description = "ETL pipeline from GCS to BigQuery"
     parameters = {
-      inputPath     = "gs://${local.name_prefix}-raw-*/"
-      outputTable   = "${local.name_prefix}_analytics.aggregated_metrics"
-      tempLocation  = "gs://${google_storage_bucket.temp.name}/temp/"
-      maxWorkers    = var.max_workers
-      machineType   = var.machine_type
-      network       = var.network
-      subnetwork    = var.subnetwork
+      inputPath      = "gs://${local.name_prefix}-raw-*/"
+      outputTable    = "${local.name_prefix}_analytics.aggregated_metrics"
+      tempLocation   = "gs://${google_storage_bucket.temp.name}/temp/"
+      maxWorkers     = var.max_workers
+      machineType    = var.machine_type
+      network        = var.network
+      subnetwork     = var.subnetwork
       serviceAccount = google_service_account.dataflow.email
-      usePublicIps  = false
+      usePublicIps   = false
     }
   })
 }

@@ -17,7 +17,7 @@ locals {
       failover_priority = 1
       zone_redundant    = false
     }
-  ] : [
+    ] : [
     {
       location          = var.location
       failover_priority = 0

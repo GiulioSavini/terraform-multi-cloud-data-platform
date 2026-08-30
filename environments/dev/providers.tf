@@ -42,7 +42,7 @@ provider "azurerm" {
 }
 
 provider "google" {
-  project         = var.gcp_project_id
-  region          = var.gcp_region
-  default_labels  = local.common_tags
+  project        = var.gcp_project_id
+  region         = var.gcp_region
+  default_labels = local.common_tags
 }

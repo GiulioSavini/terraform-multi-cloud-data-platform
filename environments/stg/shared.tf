@@ -18,11 +18,11 @@ module "governance" {
 module "streaming" {
   source = "../../modules/shared/streaming"
 
-  project_name               = var.project_name
-  environment                = var.environment
-  msk_cluster_arn            = module.aws_msk.cluster_arn
-  msk_bootstrap_brokers      = module.aws_msk.bootstrap_brokers_tls
-  eventhubs_namespace        = module.azure_kafka.namespace_name
+  project_name                = var.project_name
+  environment                 = var.environment
+  msk_cluster_arn             = module.aws_msk.cluster_arn
+  msk_bootstrap_brokers       = module.aws_msk.bootstrap_brokers_tls
+  eventhubs_namespace         = module.azure_kafka.namespace_name
   eventhubs_connection_string = module.azure_kafka.primary_connection_string
-  tags                       = local.common_tags
+  tags                        = local.common_tags
 }

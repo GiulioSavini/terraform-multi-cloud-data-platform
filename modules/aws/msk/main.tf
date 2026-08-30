@@ -98,9 +98,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "msk_logs" {
 # -----------------------------------------------------------------------------
 
 resource "aws_msk_configuration" "main" {
-  name              = "${local.name_prefix}-msk-config"
-  kafka_versions    = [var.kafka_version]
-  description       = "MSK configuration for ${local.name_prefix}"
+  name           = "${local.name_prefix}-msk-config"
+  kafka_versions = [var.kafka_version]
+  description    = "MSK configuration for ${local.name_prefix}"
 
   server_properties = <<-PROPERTIES
     auto.create.topics.enable=false

@@ -40,28 +40,28 @@ module "azure_cosmosdb" {
 module "azure_synapse" {
   source = "../../modules/azure/synapse"
 
-  project_name             = var.project_name
-  environment              = var.environment
-  location                 = var.azure_region
-  resource_group_name      = module.azure_networking.resource_group_name
-  storage_account_id       = module.azure_data_lake.storage_account_id
-  filesystem_id            = module.azure_data_lake.raw_container_id
-  sql_pool_sku             = var.synapse_sql_pool_sku
-  spark_node_count         = var.synapse_spark_node_count
-  tags                     = local.common_tags
+  project_name        = var.project_name
+  environment         = var.environment
+  location            = var.azure_region
+  resource_group_name = module.azure_networking.resource_group_name
+  storage_account_id  = module.azure_data_lake.storage_account_id
+  filesystem_id       = module.azure_data_lake.raw_container_id
+  sql_pool_sku        = var.synapse_sql_pool_sku
+  spark_node_count    = var.synapse_spark_node_count
+  tags                = local.common_tags
 }
 
 module "azure_data_factory" {
   source = "../../modules/azure/data-factory"
 
-  project_name         = var.project_name
-  environment          = var.environment
-  location             = var.azure_region
-  resource_group_name  = module.azure_networking.resource_group_name
-  storage_account_url  = module.azure_data_lake.primary_dfs_endpoint
-  cosmosdb_endpoint    = module.azure_cosmosdb.endpoint
-  synapse_endpoint     = module.azure_synapse.connectivity_endpoints
-  tags                 = local.common_tags
+  project_name        = var.project_name
+  environment         = var.environment
+  location            = var.azure_region
+  resource_group_name = module.azure_networking.resource_group_name
+  storage_account_url = module.azure_data_lake.primary_dfs_endpoint
+  cosmosdb_endpoint   = module.azure_cosmosdb.endpoint
+  synapse_endpoint    = module.azure_synapse.connectivity_endpoints
+  tags                = local.common_tags
 }
 
 module "azure_kafka" {

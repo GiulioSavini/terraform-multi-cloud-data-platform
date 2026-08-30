@@ -22,15 +22,33 @@ terraform {
 }
 
 provider "aws" { region = var.aws_region }
-provider "azurerm" { features {}; subscription_id = var.azure_subscription_id }
-provider "google" { project = var.gcp_project_id; region = var.gcp_region }
+provider "azurerm" {
+  features {}
+  subscription_id = var.azure_subscription_id
+}
+provider "google" {
+  project = var.gcp_project_id
+  region  = var.gcp_region
+}
 
-variable "aws_region" { type = string; default = "eu-west-1" }
+variable "aws_region" {
+  type    = string
+  default = "eu-west-1"
+}
 variable "azure_subscription_id" { type = string }
-variable "azure_location" { type = string; default = "westeurope" }
+variable "azure_location" {
+  type    = string
+  default = "westeurope"
+}
 variable "gcp_project_id" { type = string }
-variable "gcp_region" { type = string; default = "europe-west1" }
-variable "synapse_password" { type = string; sensitive = true }
+variable "gcp_region" {
+  type    = string
+  default = "europe-west1"
+}
+variable "synapse_password" {
+  type      = string
+  sensitive = true
+}
 
 locals {
   project     = "dataplatform"
@@ -69,12 +87,12 @@ module "aws_data_lake" {
 }
 
 module "aws_glue" {
-  source             = "../../modules/aws/glue"
-  project            = local.project
-  environment        = local.environment
-  raw_bucket_name    = module.aws_data_lake.raw_bucket_name
+  source              = "../../modules/aws/glue"
+  project             = local.project
+  environment         = local.environment
+  raw_bucket_name     = module.aws_data_lake.raw_bucket_name
   curated_bucket_name = module.aws_data_lake.curated_bucket_name
-  tags               = local.tags
+  tags                = local.tags
 }
 
 # --- Azure Data Stack ---

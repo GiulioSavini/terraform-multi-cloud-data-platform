@@ -153,10 +153,10 @@ resource "aws_s3_bucket_policy" "zones" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "DenyUnencryptedTransport"
-        Effect = "Deny"
+        Sid       = "DenyUnencryptedTransport"
+        Effect    = "Deny"
         Principal = "*"
-        Action = "s3:*"
+        Action    = "s3:*"
         Resource = [
           each.value.arn,
           "${each.value.arn}/*"
@@ -168,11 +168,11 @@ resource "aws_s3_bucket_policy" "zones" {
         }
       },
       {
-        Sid    = "DenyIncorrectEncryption"
-        Effect = "Deny"
+        Sid       = "DenyIncorrectEncryption"
+        Effect    = "Deny"
         Principal = "*"
-        Action = "s3:PutObject"
-        Resource = "${each.value.arn}/*"
+        Action    = "s3:PutObject"
+        Resource  = "${each.value.arn}/*"
         Condition = {
           StringNotEquals = {
             "s3:x-amz-server-side-encryption" = "aws:kms"

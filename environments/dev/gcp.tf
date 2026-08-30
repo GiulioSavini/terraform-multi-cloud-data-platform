@@ -24,14 +24,14 @@ module "gcp_data_lake" {
 module "gcp_cloudsql" {
   source = "../../modules/gcp/cloudsql"
 
-  project_name      = var.project_name
-  environment       = var.environment
-  region            = var.gcp_region
-  tier              = var.cloudsql_tier
-  ha_enabled        = var.cloudsql_ha_enabled
-  backup_retention  = var.cloudsql_backup_retention
-  read_replicas     = var.cloudsql_read_replicas
-  network_id        = module.gcp_networking.vpc_id
+  project_name     = var.project_name
+  environment      = var.environment
+  region           = var.gcp_region
+  tier             = var.cloudsql_tier
+  ha_enabled       = var.cloudsql_ha_enabled
+  backup_retention = var.cloudsql_backup_retention
+  read_replicas    = var.cloudsql_read_replicas
+  network_id       = module.gcp_networking.vpc_id
 }
 
 module "gcp_bigquery" {

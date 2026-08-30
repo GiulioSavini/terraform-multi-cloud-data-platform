@@ -138,9 +138,9 @@ resource "google_sql_database_instance" "replica" {
   deletion_protection  = var.environment == "prd"
 
   settings {
-    tier            = var.tier
-    disk_autoresize = true
-    disk_type       = "PD_SSD"
+    tier              = var.tier
+    disk_autoresize   = true
+    disk_type         = "PD_SSD"
     availability_type = "ZONAL"
 
     ip_configuration {

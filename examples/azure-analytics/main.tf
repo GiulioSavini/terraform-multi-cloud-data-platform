@@ -24,8 +24,14 @@ provider "azurerm" {
 }
 
 variable "subscription_id" { type = string }
-variable "location" { type = string; default = "westeurope" }
-variable "synapse_password" { type = string; sensitive = true }
+variable "location" {
+  type    = string
+  default = "westeurope"
+}
+variable "synapse_password" {
+  type      = string
+  sensitive = true
+}
 
 locals {
   project     = "azure-analytics"

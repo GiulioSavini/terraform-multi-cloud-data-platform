@@ -24,14 +24,29 @@ terraform {
 }
 
 provider "aws" { region = var.aws_region }
-provider "azurerm" { features {}; subscription_id = var.azure_subscription_id }
-provider "google" { project = var.gcp_project_id; region = var.gcp_region }
+provider "azurerm" {
+  features {}
+  subscription_id = var.azure_subscription_id
+}
+provider "google" {
+  project = var.gcp_project_id
+  region  = var.gcp_region
+}
 
-variable "aws_region" { type = string; default = "eu-west-1" }
+variable "aws_region" {
+  type    = string
+  default = "eu-west-1"
+}
 variable "azure_subscription_id" { type = string }
-variable "azure_location" { type = string; default = "westeurope" }
+variable "azure_location" {
+  type    = string
+  default = "westeurope"
+}
 variable "gcp_project_id" { type = string }
-variable "gcp_region" { type = string; default = "europe-west1" }
+variable "gcp_region" {
+  type    = string
+  default = "europe-west1"
+}
 
 locals {
   project     = "streaming"
@@ -96,7 +111,10 @@ module "streaming_replication" {
   tags                  = local.tags
 }
 
-output "msk_brokers" { value = module.msk.bootstrap_brokers_tls; sensitive = true }
+output "msk_brokers" {
+  value     = module.msk.bootstrap_brokers_tls
+  sensitive = true
+}
 output "eventhubs_kafka_endpoint" { value = module.event_hubs.kafka_endpoint }
 output "pubsub_events_topic" { value = module.pubsub.events_topic_id }
 output "replication_role_arn" { value = module.streaming_replication.msk_connect_role_arn }
